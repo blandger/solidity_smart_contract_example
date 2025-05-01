@@ -1,0 +1,18 @@
+[package]
+name = "client"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+description = "Console client"
+
+[dependencies]
+common = { path = "../common" }
+tokio.workspace = true
+serde_json.workspace = true
+alloy.workspace = true
+alloy-primitives.workspace = true
+clap.workspace = true
+reqwest.workspace = true
+rand.workspace = true
+hex.workspace = true
+k256 = { version = "0.13", features = ["ecdsa"] }

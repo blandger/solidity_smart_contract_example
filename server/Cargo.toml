@@ -1,0 +1,15 @@
+[package]
+name = "server"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+description = "Axum server"
+
+[dependencies]
+common = { path = "../common" }
+thiserror.workspace = true
+axum.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+axum-macros.workspace = true
