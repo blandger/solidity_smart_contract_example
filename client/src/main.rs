@@ -1,3 +1,5 @@
+mod create;
+
 use clap::{Arg, Command};
 use std::path::{Path, PathBuf};
 use std::fs;
@@ -10,6 +12,7 @@ use alloy::signers::local::PrivateKeySigner;
 use tokio;
 use reqwest;
 use serde_json;
+use crate::create::create_wallet;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -78,55 +81,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             println!("Use --help for command information");
         }
     }
-
-    Ok(())
-}
-
-/// Create a new wallet: generate private and public keys
-fn create_wallet(name: &str) -> Result<(), Box<dyn Error>> {
-    init_parent_dir();
-    println!("Creating wallet with name: {}", name);
-    let mut rng = OsRng;
-    let wallet = PrivateKeySigner
-    ::random_with(&mut rng);
-    let address = wallet.address();
-    let private_key_bytes = wallet.to_bytes();
-    println!("Wallet Address: {:?}", &address);
-
-    let signing_key = SigningKey::from_slice(&private_key_bytes.0).expect("Invalid private key");
-
-    // Получаем публичный ключ
-    let verifying_key = signing_key.verifying_key();
-    let public_key = verifying_key.to_encoded_point(false);
-    let public_key_bytes = public_key.as_bytes();
-
-
-    // Here will be your code for generating private and public keys
-    // and writing them to files {name}.private and {name}.public
-
-    let private_key_hex = hex::encode(private_key_bytes);
-    println!("Private key: 0x{}", private_key_hex);
-    let public_key_hex = hex::encode(public_key_bytes);
-    println!("Public key: 0x{}", public_key_hex);
-
-    // Example structure:
-    let private_key_path = get_path(&format!("{}.private", name));
-    let public_key_path = get_path(&format!("{}.public", name));
-
-    // Create parent directories if they don't exist
-    if let Some(parent) = private_key_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    if let Some(parent) = public_key_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-
-    // Write to files
-    fs::write(&private_key_path, private_key_hex)?;
-    fs::write(&public_key_path, public_key_hex)?;
-
-    println!("Wallet successfully created.\nPrivate key saved in '{}', public key in '{}'",
-             private_key_path.display(), public_key_path.display());
 
     Ok(())
 }
