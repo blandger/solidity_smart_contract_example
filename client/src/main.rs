@@ -1,4 +1,7 @@
 mod create;
+pub mod load_wallet;
+pub mod check_wallet_balance;
+pub mod errors;
 
 use clap::{Arg, Command};
 use std::path::{Path, PathBuf};
@@ -8,7 +11,12 @@ use std::sync::OnceLock;
 use tokio;
 use reqwest;
 use serde_json;
+use crate::check_wallet_balance::check_wallet_balance;
 use crate::create::create_wallet;
+use crate::load_wallet::load_wallet_from_file;
+
+/// Sepolia test net RPC URL
+pub const TEST_NET_RPC_URL: &str = "https://rpc-sepolia.rockx.com";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -17,7 +25,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .author("Your Name")
         .about("wallets and contracts management CLI")
         .subcommand(
-            Command::new("create_wallet")
+            Command::new("create-wallet")
                 .about("Creating new wallet")
                 .arg(
                     Arg::new("name")
@@ -27,8 +35,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 ),
         )
         .subcommand(
-            Command::new("deploy_contract")
-                .about("Сontract deployment")
+            Command::new("get-balance")
+                .about("Check wallet balance")
+                .arg(
+                    Arg::new("name")
+                        .help("Wallet/File name")
+                        .required(true)
+                        .index(1),
+                ),
+        )
+        .subcommand(
+            Command::new("deploy-contract")
+                .about("Contract deployment")
                 .args(
                     [Arg::new("contract")
                         .help("File name for solidity contract")
@@ -42,7 +60,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 ),
         )
         .subcommand(
-            Command::new("store_message")
+            Command::new("store-message")
                 .about("Store new data to contract")
                 .arg(
                     Arg::new("signer")
@@ -59,12 +77,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .get_matches();
 
+    init_parent_dir();
     match matches.subcommand() {
-        Some(("create_wallet", sub_matches)) => {
+        Some(("create-wallet", sub_matches)) => {
             let name = sub_matches.get_one::<String>("name").unwrap();
             create_wallet(name)?;
         }
-        Some(("deploy_contract", sub_matches)) => {
+        Some(("get-balance", sub_matches)) => {
+            let name = sub_matches.get_one::<String>("name").unwrap();
+            check_wallet_balance(name).await?;
+        }
+        Some(("deploy-contract", sub_matches)) => {
             let signer = sub_matches.get_one::<String>("signer").unwrap();
             deploy_contract(signer).await?;
         }
@@ -85,20 +108,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
 async fn deploy_contract(signer: &str) -> Result<(), Box<dyn Error>> {
     println!("Deploying contract with signer key: {}", signer);
 
-    // Read private key from file
-    let private_key_path = format!("{}.private", signer);
-    if !Path::new(&private_key_path).exists() {
-        return Err(format!("Private key file {} not found", private_key_path).into());
-    }
+    let wallet = load_wallet_from_file(signer)?;
 
-    let private_key = fs::read_to_string(&private_key_path)?;
+    let private_key = wallet.to_bytes().0;
+    println!("private_key = {private_key:?}");
 
     // Here will be your code for signing the transaction and sending to REST API
     // 1. Create an HTTP client
-    let client = reqwest::Client::new();
+    // let client = reqwest::Client::new();
 
     // 2. Sign the deploy transaction (placeholder)
-    let signed_transaction = format!("signed_deploy_transaction_with_key_{}", private_key);
+    // let signed_transaction = format!("signed_deploy_transaction_with_key_{}", private_key);
 
     // 3. Send the transaction to local server
     // let response = client.post("http://localhost:8000/api/deploy")
@@ -125,10 +145,10 @@ async fn store_message(signer: &str, new_string: &str) -> Result<(), Box<dyn Err
 
     // Here will be your code for signing the transaction and sending to REST API
     // 1. Create an HTTP client
-    let client = reqwest::Client::new();
+    let _client = reqwest::Client::new();
 
     // 2. Create and sign transaction with new value (placeholder)
-    let transaction_data = serde_json::json!({
+    let _transaction_data = serde_json::json!({
         "value": new_string,
         "signature": format!("signed_with_key_{}", private_key)
     });
