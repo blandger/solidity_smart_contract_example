@@ -6,6 +6,7 @@ use alloy::hex;
 use crate::errors::ClientError;
 use crate::get_path;
 
+/// Load private key from file with name using current folder
 pub fn load_wallet_from_file(name: &str) -> Result<PrivateKeySigner, ClientError> {
     // Read private key from file
     let private_key_path = get_path(&format!("{}.private", name));

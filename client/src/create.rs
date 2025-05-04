@@ -5,7 +5,7 @@ use k256::elliptic_curve::rand_core::OsRng;
 use crate::errors::ClientError;
 use crate::get_path;
 
-/// Create a new wallet by generating private and public keys
+/// Create a new wallet by generating private and public keys. Write them to files with the specified name
 pub fn create_wallet(name: &str) -> Result<(), ClientError> {
     println!("Creating wallet with name: {}", name);
     let mut rng = OsRng;

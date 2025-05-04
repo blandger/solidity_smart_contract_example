@@ -9,12 +9,12 @@ pub async fn check_wallet_balance(name: &str) -> Result<U256, ClientError> {
     let wallet = load_wallet_from_file(name)?;
     println!("Wallet address: {}", wallet.address());
 
-    // Connect to Sepolia
+    // Connect to Sepolia test net
     let provider = ProviderBuilder::new().connect(TEST_NET_RPC_URL).await?;
 
     // Check wallet balance
     let balance = provider.get_balance(wallet.address()).await?;
-    println!("Баланс: '{}' wei (ETH)", convert_wei_to_eth(balance));
+    println!("Balance: '{}' wei (ETH)", convert_wei_to_eth(balance));
     Ok(balance)
 }
 

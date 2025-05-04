@@ -22,14 +22,14 @@ pub const TEST_NET_RPC_URL: &str = "https://rpc-sepolia.rockx.com";
 async fn main() -> Result<(), Box<dyn Error>> {
     let matches = Command::new("wallet-cli")
         .version("0.1.0")
-        .author("Your Name")
-        .about("wallets and contracts management CLI")
+        .author("Yuriy")
+        .about("Test Ethereum wallets and contracts management CLI")
         .subcommand(
             Command::new("create-wallet")
                 .about("Creating new wallet")
                 .arg(
                     Arg::new("name")
-                        .help("Wallet/File name")
+                        .help("Wallet's file name")
                         .required(true)
                         .index(1),
                 ),
@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .about("Check wallet balance")
                 .arg(
                     Arg::new("name")
-                        .help("Wallet/File name")
+                        .help("Wallet's file name")
                         .required(true)
                         .index(1),
                 ),
@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .about("Contract deployment")
                 .args(
                     [Arg::new("contract")
-                        .help("File name for solidity contract")
+                        .help("File name for local solidity contract")
                         .required(true)
                         .index(1),
                     Arg::new("signer")
@@ -79,6 +79,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     init_parent_dir();
     match matches.subcommand() {
+        // Generates two keys and writes them to files using name provided
         Some(("create-wallet", sub_matches)) => {
             let name = sub_matches.get_one::<String>("name").unwrap();
             create_wallet(name)?;
@@ -91,7 +92,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let signer = sub_matches.get_one::<String>("signer").unwrap();
             deploy_contract(signer).await?;
         }
-        Some(("store_message", sub_matches)) => {
+        Some(("store-message", sub_matches)) => {
             let signer = sub_matches.get_one::<String>("signer").unwrap();
             let new_string = sub_matches.get_one::<String>("new_string").unwrap();
             store_message(signer, new_string).await?;
