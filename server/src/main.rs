@@ -1,18 +1,16 @@
-mod deploy;
-mod hello;
-mod retrieve;
+pub mod handler;
 pub mod state;
-mod store;
 
-use crate::deploy::deploy_contract;
-use crate::hello::static_hello;
-use crate::retrieve::retrieve_message_route;
-use crate::state::{AppState, create_shared_provider};
-use crate::store::store_message;
+use handler::deploy::deploy_contract;
+use handler::hello::static_hello;
+use handler::retrieve::retrieve_message_route;
+use crate::state::{create_shared_provider, AppState};
+use handler::store::store_message;
 use axum::Router;
 use axum::routing::{get, post};
 use std::error::Error;
 use std::net::SocketAddr;
+use crate::handler::transfer::transfer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -20,12 +18,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let api_routes = Router::new()
         .route("/test", get(static_hello))
+        .route("/transfer", post(transfer))
         .route("/deploy-contract", post(deploy_contract))
         .with_state(state.clone())
         .route("/store-message", post(store_message))
         .with_state(state.clone())
         .route(
-            "/retrieve-message/:contract_address",
+            "/retrieve-message/{contract_address}",
             retrieve_message_route(),
         )
         .with_state(state.clone());

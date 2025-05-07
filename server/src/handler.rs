@@ -1,6 +1,5 @@
-pub mod config;
 pub mod deploy;
-pub mod error;
+pub mod hello;
 pub mod retrieve;
 pub mod store;
 pub mod transfer;

@@ -9,6 +9,7 @@ description = "Common components for client and server"
 thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+alloy.workspace = true
 axum.workspace = true
 http.workspace = true
 url.workspace = true
