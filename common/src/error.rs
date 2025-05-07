@@ -6,6 +6,7 @@ use axum::{
 use thiserror::Error;
 use url::ParseError;
 use alloy::hex;
+use alloy::primitives::AddressError;
 use alloy::transports::{RpcError, TransportErrorKind};
 
 #[derive(Error, Debug)]
@@ -40,6 +41,8 @@ pub enum ApiError {
     SendTx(#[from] RpcError<TransportErrorKind>),
     #[error(transparent)]
     PendingTx(#[from] alloy::providers::PendingTransactionError),
+    #[error("Incorrect Address: {0}")]
+    IncorrectAddress(#[from] AddressError),
 }
 
 impl IntoResponse for ApiError {
@@ -56,6 +59,7 @@ impl IntoResponse for ApiError {
             ApiError::IncorrectTxData(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::SendTx(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::PendingTx(_) => (StatusCode::BAD_REQUEST, self.to_string()),
+            ApiError::IncorrectAddress(_) => (StatusCode::BAD_REQUEST, self.to_string()),
         };
 
         let body = Json(serde_json::json!({

@@ -10,6 +10,7 @@ use axum::Router;
 use axum::routing::{get, post};
 use std::error::Error;
 use std::net::SocketAddr;
+use crate::handler::transaction_params::get_transaction_params_route;
 use crate::handler::transfer::transfer;
 
 #[tokio::main]
@@ -27,11 +28,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
             "/retrieve-message/{contract_address}",
             retrieve_message_route(),
         )
+        .with_state(state.clone())
+        .route(
+            "/tx/{address}",
+            get_transaction_params_route(),
+        )
         .with_state(state.clone());
 
     let app = with_prefix("/api", api_routes);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     println!("Listening on: {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;

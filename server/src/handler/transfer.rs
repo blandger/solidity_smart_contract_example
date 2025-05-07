@@ -3,12 +3,12 @@ use alloy::hex;
 use axum::extract::State;
 use common::error::ApiError;
 use common::store::TransactionStatus;
-use common::transfer::{TransactionResponse, TransferPayload};
+use common::transfer::{TransferTransactionResponse, TransferPayload};
 
 pub async fn transfer(
     State(state): State<AppState>,
     axum::Json(payload): axum::Json<TransferPayload>,
-) -> Result<axum::Json<TransactionResponse>, ApiError> {
+) -> Result<axum::Json<TransferTransactionResponse>, ApiError> {
     let provider = state.provider;
 
     let tx_bytes = hex::decode(&payload.signed_transaction)?;
@@ -24,7 +24,7 @@ pub async fn transfer(
     let pending_tx = builder.register().await?;
     // Wait for the transaction to be confirmed 2 times.
     let tx_hash = pending_tx.await?;
-    Ok(axum::Json(TransactionResponse {
+    Ok(axum::Json(TransferTransactionResponse {
         transaction_hash: format!("{:#x}", tx_hash),
         block_number: None,
         status: TransactionStatus::Confirmed,

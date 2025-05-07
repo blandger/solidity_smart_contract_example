@@ -8,9 +8,10 @@ use common::retrieve::RetrieveMessageResponse;
 
 #[debug_handler]
 pub async fn retrieve_message(
-    Path(contract_address): Path<String>,
     State(state): State<AppState>,
+    Path(contract_address): Path<String>,
 ) -> Result<Json<RetrieveMessageResponse>, ApiError> {
+    let provider = state.provider;
     Ok(Json(RetrieveMessageResponse {
         message: format!("Received contract: {}", contract_address),
         last_updated_block: None,

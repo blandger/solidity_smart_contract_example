@@ -5,7 +5,7 @@ pub struct RetrieveMessageQuery {
     contract_address: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct RetrieveMessageResponse {
     /// Message from contract
     pub message: String,
