@@ -17,7 +17,7 @@ pub fn create_wallet(name: &str) -> Result<(), ClientError> {
 
     let signing_key = SigningKey::from_slice(&private_key_bytes.0).expect("Invalid private key");
 
-    // Получаем публичный ключ
+    // Getting public key
     let verifying_key = signing_key.verifying_key();
     let public_key = verifying_key.to_encoded_point(false);
     let public_key_bytes = public_key.as_bytes();

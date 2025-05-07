@@ -11,5 +11,7 @@ thiserror.workspace = true
 axum.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+alloy.workspace = true
+alloy-primitives.workspace = true
 tokio.workspace = true
 axum-macros.workspace = true

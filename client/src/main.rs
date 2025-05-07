@@ -15,9 +15,6 @@ use crate::check_wallet_balance::check_wallet_balance;
 use crate::create::create_wallet;
 use crate::load_wallet::load_wallet_from_file;
 
-/// Sepolia test net RPC URL
-pub const TEST_NET_RPC_URL: &str = "https://rpc-sepolia.rockx.com";
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let matches = Command::new("wallet-cli")

@@ -4,6 +4,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use thiserror::Error;
+use url::ParseError;
 
 #[derive(Error, Debug)]
 pub enum ApiError {
@@ -27,6 +28,9 @@ pub enum ApiError {
 
     // #[error("Ethereum error: {0}")]
     // EthereumError(#[from] ethers::core::types::Error),
+
+    #[error(transparent)]
+    IncorrectUrl(#[from] ParseError),
 }
 
 impl IntoResponse for ApiError {
@@ -39,6 +43,7 @@ impl IntoResponse for ApiError {
             ApiError::TransactionTimeout(_) => (StatusCode::GATEWAY_TIMEOUT, self.to_string()),
             ApiError::InternalServerError(_) /*| ApiError::EthereumError(_) */=>
                 (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()),
+            ApiError::IncorrectUrl(_) => (StatusCode::BAD_REQUEST, self.to_string()),
         };
 
         let body = Json(serde_json::json!({

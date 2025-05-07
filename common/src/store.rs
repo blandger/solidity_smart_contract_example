@@ -7,7 +7,6 @@ pub struct StoreMessagePayload {
     /// Hex-encoded signed transaction for calling storeMessage
     signed_transaction: String,
 }
-
 #[derive(Serialize)]
 pub struct TransactionResponse {
     /// Transaction hash

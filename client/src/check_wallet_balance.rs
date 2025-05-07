@@ -2,18 +2,19 @@ use crate::errors::ClientError;
 use crate::load_wallet::load_wallet_from_file;
 use alloy::providers::{Provider, ProviderBuilder};
 use alloy_primitives::U256;
-use crate::TEST_NET_RPC_URL;
+use common::config::TEST_NET_RPC_URL;
 
 pub async fn check_wallet_balance(name: &str) -> Result<U256, ClientError> {
     println!("Check balance signer key: {}", name);
     let wallet = load_wallet_from_file(name)?;
-    println!("Wallet address: {}", wallet.address());
+    let address = wallet.address();
+    println!("Wallet address: {}", address);
 
     // Connect to Sepolia test net
     let provider = ProviderBuilder::new().connect(TEST_NET_RPC_URL).await?;
 
     // Check wallet balance
-    let balance = provider.get_balance(wallet.address()).await?;
+    let balance = provider.get_balance(address).await?;
     println!("Balance: '{}' wei (ETH)", convert_wei_to_eth(balance));
     Ok(balance)
 }
