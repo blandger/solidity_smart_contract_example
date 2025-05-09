@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use crate::store::TransactionStatus;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct TransferPayload {
     pub address_from: String,
     pub address_to: String,
@@ -9,9 +9,9 @@ pub struct TransferPayload {
     pub signed_transaction: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct TransferTransactionResponse {
-    pub transaction_hash: String,
+    pub transaction_hash: Option<String>,
     pub block_number: Option<u64>,
     pub status: TransactionStatus,
 }

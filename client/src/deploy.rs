@@ -18,7 +18,7 @@ pub async fn deploy_contract(signer: &str) -> Result<(), Box<dyn Error>> {
     // let signed_transaction = format!("signed_deploy_transaction_with_key_{}", private_key);
 
     // 3. Send the transaction to local server
-    // let response = client.post("http://localhost:8000/api/deploy")
+    // let response = client.post("http://localhost:8080/api/deploy")
     //     .json(&signed_transaction)
     //     .send()
     //     .await?;

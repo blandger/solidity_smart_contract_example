@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DeployContractPayload {
     /// Hex-encoded signed transaction
     signed_transaction: String,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DeployContractResponse {
     /// Contract deployed address
     contract_address: String,

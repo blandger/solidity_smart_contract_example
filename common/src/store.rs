@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct StoreMessagePayload {
     /// Contract's address
     contract_address: String,
     /// Hex-encoded signed transaction for calling storeMessage
     signed_transaction: String,
 }
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct StoreInContractTransactionResponse {
     /// Transaction hash
     transaction_hash: String,
@@ -17,7 +17,7 @@ pub struct StoreInContractTransactionResponse {
     status: TransactionStatus,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum TransactionStatus {
     Pending,
     Confirmed,

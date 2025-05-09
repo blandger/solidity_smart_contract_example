@@ -11,17 +11,21 @@ use std::path::PathBuf;
 use std::error::Error;
 use std::sync::OnceLock;
 use tokio;
-use reqwest;
-use serde_json;
 use crate::check_wallet_balance::check_wallet_balance;
 use crate::create::create_wallet;
 use crate::deploy::deploy_contract;
-use crate::load_wallet::load_wallet_from_file;
 use crate::store::store_message;
 use crate::transfer::transfer_amount;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() {
+    if let Err(e) = run_app().await {
+        eprintln!("Error: {}", e); // Здесь используется {}, а не {:?}
+        std::process::exit(1);
+    }
+}
+
+async fn run_app() -> Result<(), Box<dyn Error>> {
     let matches = Command::new("wallet-cli")
         .version("0.1.0")
         .author("Yuriy")
@@ -114,7 +118,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let account_from = sub_matches.get_one::<String>("from").unwrap();
             // that is an Ethereum address !!
             let account_to = sub_matches.get_one::<String>("to").unwrap();
-            // that is a number as string 
+            // that is a number as string
             let amount = sub_matches.get_one::<String>("amount").unwrap();
             transfer_amount(account_from, account_to, amount).await?;
         }

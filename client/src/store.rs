@@ -24,7 +24,7 @@ pub async fn store_message(signer: &str, new_string: &str) -> Result<(), Box<dyn
     });
 
     // 3. Send transaction to local server
-    // let response = client.post("http://localhost:8000/api/store")
+    // let response = client.post("http://localhost:8080/api/store")
     //     .json(&transaction_data)
     //     .send()
     //     .await?;

@@ -7,7 +7,7 @@ use thiserror::Error;
 pub enum ClientError {
     #[error("IO Error reading key file")]
     IO(#[from] std::io::Error),
-    #[error("Private key file '{}' not found", 0)]
+    #[error("Private key file '{0}.private' not found")]
     ReadPrivateKey(String),
     #[error(transparent)]
     Hex(#[from] FromHexError),
