@@ -1,6 +1,6 @@
 mod create;
 pub mod load_wallet;
-pub mod check_wallet_balance;
+pub mod balance;
 pub mod errors;
 pub mod transfer;
 pub mod deploy;
@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use std::error::Error;
 use std::sync::OnceLock;
 use tokio;
-use crate::check_wallet_balance::check_wallet_balance;
+use crate::balance::check_wallet_balance;
 use crate::create::create_wallet;
 use crate::deploy::deploy_contract;
 use crate::store::store_message;

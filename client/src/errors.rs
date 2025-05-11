@@ -15,4 +15,8 @@ pub enum ClientError {
     PrivateKeyFromBytes(#[from] ecdsa::Error),
     #[error(transparent)]
     Connect(#[from] TransportError),
+    #[error(transparent)]
+    Request(#[from] reqwest::Error),
+    #[error("Error from server API: '{0}")]
+    Server(String),
 }
