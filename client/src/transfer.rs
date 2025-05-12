@@ -5,8 +5,11 @@ use alloy::hex;
 use alloy::network::{EthereumWallet, TransactionBuilder};
 use alloy::rpc::types::TransactionRequest;
 use alloy_primitives::{ChainId, U256};
+use common::balance::BalanceResponse;
+use common::error::ApiError;
 use common::transaction_params::TransactionParamsResponse;
 use common::transfer::{TransferPayload, TransferTransactionResponse};
+use crate::config::BASE_LOCAL_SERVER_URL;
 use crate::load_wallet::load_wallet_from_file;
 
 /// Transfer some tokens from one account to another using server side.
@@ -25,21 +28,61 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
     let amount_wei = U256::from((value * 1e18) as u128);
     println!("Amount to transfer: {} ETH ({} Wei)", value, amount_wei);
 
-
     // Here will be your code for signing the transaction and sending to REST API
     // 1. Create an HTTP client
     let client = reqwest::Client::new();
 
-    let params_response = client
-        .get(format!("http://localhost:8080/api/tx/{}", &address_from))
+    let balance_response = client
+        .get(format!("{}/balance/{}", &BASE_LOCAL_SERVER_URL, &address_from))
         .send()
-        .await?
-        .json::<TransactionParamsResponse>()
+        .await?;
+
+    if !balance_response.status().is_success() {
+        let error_text = balance_response.text().await?;
+        println!("Failed to get balance for address '{}' because: {}", &address_from, error_text);
+        return Err(error_text.into());
+    }
+
+    let balance_value: BalanceResponse = balance_response
+        .json::<BalanceResponse>()
+        .await?;
+
+    let balance_from = balance_value.balance;
+    println!("Got balance: '{}' in Wei", balance_from);
+
+    let params_response = client
+        .get(format!("{}/tx/{}", &BASE_LOCAL_SERVER_URL, &address_from))
+        .send()
+        .await?;
+
+    if !params_response.status().is_success() {
+        let error_text = params_response.text().await?;
+        println!("Failed to get balance for address '{}' because: {}", &address_from, error_text);
+        return Err(error_text.into())
+    }
+
+    let params_response = params_response.json::<TransactionParamsResponse>()
         .await?;
 
     let _nonce = U256::try_from(params_response.nonce)?;
-    let _gas_price = U256::try_from(params_response.gas_price)?;
     let chain_id = params_response.chain_id;
+
+    let gas_limit = U256::from(21000);
+    println!("gas_limit = {gas_limit}");
+    let gas_price = U256::from(params_response.gas_price);
+    println!("gas_price = {}", &gas_price);
+    let gas_fee = gas_price * gas_limit;
+    println!("gas_fee = {gas_fee}");
+
+    let total_required = amount_wei
+        .checked_add(gas_fee)
+        .ok_or("overflow in 'total_required' calculation")?;
+    println!("total_required = {total_required}");
+
+    // check if balance is enough for transfer
+    if balance_from < total_required {
+        return Err(Box::new(ApiError::InsufficientFunds(address_from.to_string(), total_required)));
+    }
 
     // Create transaction for money transfer
     let tx_request = TransactionRequest::default()
@@ -64,9 +107,9 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
         amount: value,
         signed_transaction: signed_tx_hex
     };
-    
+
     let response = client
-        .post("http://localhost:8080/api/transfer")
+        .post(format!("{}/transfer", &BASE_LOCAL_SERVER_URL))
         .json(&transaction_data)
         .send()
         .await?;

@@ -1,21 +1,22 @@
-mod create;
-pub mod load_wallet;
 pub mod balance;
-pub mod errors;
-pub mod transfer;
+mod create;
 pub mod deploy;
+pub mod errors;
+pub mod load_wallet;
+mod config;
 pub mod store;
+pub mod transfer;
 
-use clap::{Arg, Command};
-use std::path::PathBuf;
-use std::error::Error;
-use std::sync::OnceLock;
-use tokio;
 use crate::balance::check_wallet_balance;
 use crate::create::create_wallet;
 use crate::deploy::deploy_contract;
 use crate::store::store_message;
 use crate::transfer::transfer_amount;
+use clap::{Arg, Command};
+use std::error::Error;
+use std::path::PathBuf;
+use std::sync::OnceLock;
+use tokio;
 
 #[tokio::main]
 async fn main() {
@@ -53,27 +54,26 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
         .subcommand(
             Command::new("transfer")
                 .about("Transfer X money from one to another wallet/account")
-                .args(
-                    [Arg::new("from")
+                .args([
+                    Arg::new("from")
                         .help("Local file name for private key of Account to transfer money from")
                         .required(true)
                         .index(1),
-                        Arg::new("to")
-                            .help("Account Address to transfer money to")
-                            .required(true)
-                            .index(2),
-                        Arg::new("amount")
-                            .help("Amount to transfer")
-                            .required(true)
-                            .index(3),
-                    ]
-                ),
+                    Arg::new("to")
+                        .help("Account Address to transfer money to")
+                        .required(true)
+                        .index(2),
+                    Arg::new("amount")
+                        .help("Amount to transfer")
+                        .required(true)
+                        .index(3),
+                ]),
         )
         .subcommand(
             Command::new("deploy-contract")
                 .about("Contract deployment")
-                .args(
-                    [Arg::new("contract")
+                .args([
+                    Arg::new("contract")
                         .help("File name for local solidity contract")
                         .required(true)
                         .index(1),
@@ -81,8 +81,7 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
                         .help("File name for private signer key")
                         .required(true)
                         .index(2),
-                    ]
-                ),
+                ]),
         )
         .subcommand(
             Command::new("store-message")
@@ -148,7 +147,10 @@ fn init_parent_dir() {
     {
         // For debug builds (cargo run)
         PARENT_DIR.get_or_init(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "")));
-        println!("Running in debug mode, parent directory set to: {:?}", PARENT_DIR.get().unwrap());
+        println!(
+            "Running in debug mode, parent directory set to: {:?}",
+            PARENT_DIR.get().unwrap()
+        );
     }
 
     #[cfg(not(debug_assertions))]
@@ -157,11 +159,15 @@ fn init_parent_dir() {
         // Get the executable's directory and use its parent
         PARENT_DIR.get_or_init(|| {
             let exe_path = std::env::current_exe().expect("Failed to get executable path");
-            exe_path.parent()
+            exe_path
+                .parent()
                 .unwrap_or_else(|| Path::new("."))
                 .to_path_buf()
         });
-        println!("Running in release mode, parent directory set to: {:?}", PARENT_DIR.get().unwrap());
+        println!(
+            "Running in release mode, parent directory set to: {:?}",
+            PARENT_DIR.get().unwrap()
+        );
     }
 }
 

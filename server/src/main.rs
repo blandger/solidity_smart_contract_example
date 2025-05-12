@@ -10,6 +10,7 @@ use axum::Router;
 use axum::routing::{get, post};
 use std::error::Error;
 use std::net::SocketAddr;
+use crate::handler::balance::get_balance_route;
 use crate::handler::transaction_params::get_transaction_params_route;
 use crate::handler::transfer::transfer;
 
@@ -19,6 +20,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let api_routes = Router::new()
         .route("/test", get(static_hello))
+        .route(
+            "/balance/{address}",
+            get_balance_route(),
+        )
         .route("/transfer", post(transfer))
         .route("/deploy-contract", post(deploy_contract))
         .with_state(state.clone())

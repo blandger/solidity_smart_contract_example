@@ -16,7 +16,7 @@ pub async fn get_balance(
     let wei = convert_wei_to_eth(balance);
     println!("get_balance_route: address: {} = {} wei", &address, &wei);
     Ok(Json(BalanceResponse {
-        balance: wei,
+        balance,
     }))
 }
 

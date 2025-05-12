@@ -14,17 +14,19 @@ pub async fn transfer(
 
     let tx_bytes = hex::decode(&payload.signed_transaction)?;
     let tx: &[u8] = &tx_bytes;
-    
+
     // Send a transaction, and configure the pending transaction.
     let builder = provider
         .send_raw_transaction(&tx)
         .await?
         .with_required_confirmations(2)
         .with_timeout(Some(std::time::Duration::from_secs(60)));
+    println!("Transfer is waiting for pending tx to transfer to: {:?}", &payload.address_to);
     // Register the pending transaction with the provider.
     let pending_tx = builder.register().await?;
     // Wait for the transaction to be confirmed 2 times.
     let tx_hash = pending_tx.await?;
+    println!("Transfer is DONE to transfer to: {:?}, tx_has = {}", &payload.address_to, &tx_hash);
     Ok(axum::Json(TransferTransactionResponse {
         transaction_hash: Some(tx_hash.to_string()),
         block_number: None,

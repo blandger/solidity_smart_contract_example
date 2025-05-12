@@ -6,7 +6,7 @@ use axum::{
 use thiserror::Error;
 use url::ParseError;
 use alloy::hex;
-use alloy::primitives::AddressError;
+use alloy::primitives::{AddressError, U256};
 use alloy::transports::{RpcError, TransportErrorKind};
 
 #[derive(Error, Debug)]
@@ -17,8 +17,8 @@ pub enum ApiError {
     #[error("Invalid transaction format: {0}")]
     InvalidTransactionFormat(String),
 
-    #[error("Insufficient funds: {0}")]
-    InsufficientFunds(String),
+    #[error("Insufficient funds on address: {0} for amount = {1} ETH")]
+    InsufficientFunds(String, U256),
 
     #[error("Contract deployment error: {0}")]
     ContractDeploymentError(String),
@@ -50,7 +50,7 @@ impl IntoResponse for ApiError {
         let (status, error_message) = match self {
             ApiError::NodeConnectionError(_) => (StatusCode::SERVICE_UNAVAILABLE, self.to_string()),
             ApiError::InvalidTransactionFormat(_) => (StatusCode::BAD_REQUEST, self.to_string()),
-            ApiError::InsufficientFunds(_) => (StatusCode::PAYMENT_REQUIRED, self.to_string()),
+            ApiError::InsufficientFunds(_, _) => (StatusCode::PAYMENT_REQUIRED, self.to_string()),
             ApiError::ContractDeploymentError(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::TransactionTimeout(_) => (StatusCode::GATEWAY_TIMEOUT, self.to_string()),
             ApiError::InternalServerError(_) /*| ApiError::EthereumError(_) */=>
