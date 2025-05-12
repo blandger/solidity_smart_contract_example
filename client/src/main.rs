@@ -1,9 +1,10 @@
 pub mod balance;
+mod config;
 mod create;
 pub mod deploy;
 pub mod errors;
 pub mod load_wallet;
-mod config;
+pub mod read;
 pub mod store;
 pub mod transfer;
 
@@ -17,11 +18,12 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 use tokio;
+use crate::read::read_message;
 
 #[tokio::main]
 async fn main() {
     if let Err(e) = run_app().await {
-        eprintln!("Error: {}", e); // Здесь используется {}, а не {:?}
+        eprintln!("Error: {}", e); // Use {:?}
         std::process::exit(1);
     }
 }
@@ -99,6 +101,16 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
                         .index(2),
                 ),
         )
+        .subcommand(
+            Command::new("read-message")
+                .about("Read data from deployed contract")
+                .arg(
+                    Arg::new("contact-hash")
+                        .help("Contract address hash")
+                        .required(true)
+                        .index(1),
+                ),
+        )
         .get_matches();
 
     init_parent_dir();
@@ -129,6 +141,10 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
             let signer = sub_matches.get_one::<String>("signer").unwrap();
             let new_string = sub_matches.get_one::<String>("new_string").unwrap();
             store_message(signer, new_string).await?;
+        }
+        Some(("read-message", sub_matches)) => {
+            let contact_hash = sub_matches.get_one::<String>("contact-hash").unwrap();
+            read_message(contact_hash).await?;
         }
         _ => {
             println!("Use --help for command information");

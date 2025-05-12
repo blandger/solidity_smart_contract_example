@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DeployContractPayload {
+    pub address_from: String,
     /// Hex-encoded signed transaction
     signed_transaction: String,
 }

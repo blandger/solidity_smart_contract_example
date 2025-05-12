@@ -24,7 +24,11 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
 
     let address_to = account_to.address();
 
-    let value = amount.parse::<f64>().expect(format!("Amount '{}' to transfer is not correct !", amount).as_str());
+    let value = amount.parse::<f64>().expect(format!("Amount '{}' to transfer is not parsed !", amount).as_str());
+    if value.is_nan() || value.is_sign_negative() {
+        return Err("Negative Amount to transfer is not correct !".into());
+    }
+    
     let amount_wei = U256::from((value * 1e18) as u128);
     println!("Amount to transfer: {} ETH ({} Wei)", value, amount_wei);
 
