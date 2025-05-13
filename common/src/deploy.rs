@@ -1,18 +1,20 @@
 use serde::{Deserialize, Serialize};
+use crate::store::TransactionStatus;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DeployContractPayload {
     pub address_from: String,
     /// Hex-encoded signed transaction
-    signed_transaction: String,
+    pub signed_transaction: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DeployContractResponse {
     /// Contract deployed address
-    contract_address: String,
+    pub contract_address: String,
     /// Transaction's hash
-    transaction_hash: String,
+    pub transaction_hash: Option<String>,
     /// Block number with deployed contract
-    block_number: u64,
+    pub block_number: Option<u64>,
+    pub status: TransactionStatus,
 }

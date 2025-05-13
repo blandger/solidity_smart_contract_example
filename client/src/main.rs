@@ -75,12 +75,12 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
             Command::new("deploy-contract")
                 .about("Contract deployment")
                 .args([
-                    Arg::new("contract")
-                        .help("File name for local solidity contract")
-                        .required(true)
-                        .index(1),
                     Arg::new("signer")
                         .help("File name for private signer key")
+                        .required(true)
+                        .index(1),
+                    Arg::new("contract")
+                        .help("File name for local solidity contract (.bin)")
                         .required(true)
                         .index(2),
                 ]),
@@ -134,8 +134,9 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
             transfer_amount(account_from, account_to, amount).await?;
         }
         Some(("deploy-contract", sub_matches)) => {
+            let contract = sub_matches.get_one::<String>("contract").unwrap();
             let signer = sub_matches.get_one::<String>("signer").unwrap();
-            deploy_contract(signer).await?;
+            deploy_contract(contract, signer).await?;
         }
         Some(("store-message", sub_matches)) => {
             let signer = sub_matches.get_one::<String>("signer").unwrap();

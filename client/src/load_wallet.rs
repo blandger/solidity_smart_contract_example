@@ -11,7 +11,7 @@ pub fn load_wallet_from_file(name: &str) -> Result<PrivateKeySigner, ClientError
     // Read private key from file
     let private_key_path = get_path(&format!("{}.private", name));
     if !Path::new(&private_key_path).exists() {
-        return Err(ClientError::ReadPrivateKey(name.to_string()));
+        return Err(ClientError::ReadPrivateKey(name.to_string(), private_key_path));
     }
     // Read hex-string from file
     let hex_str = fs::read_to_string(private_key_path)?;

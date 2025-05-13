@@ -4,12 +4,13 @@ use alloy::eips::Encodable2718;
 use alloy::hex;
 use alloy::network::{EthereumWallet, TransactionBuilder};
 use alloy::rpc::types::TransactionRequest;
-use alloy_primitives::{ChainId, U256};
+use alloy_primitives::{Address, ChainId, U256};
+use reqwest::Client;
 use common::balance::BalanceResponse;
 use common::error::ApiError;
 use common::transaction_params::TransactionParamsResponse;
 use common::transfer::{TransferPayload, TransferTransactionResponse};
-use crate::config::BASE_LOCAL_SERVER_URL;
+use crate::config::{APPROXIMATE_TRANSFER_GAS_PRICE, BASE_LOCAL_SERVER_URL};
 use crate::load_wallet::load_wallet_from_file;
 
 /// Transfer some tokens from one account to another using server side.
@@ -36,57 +37,9 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
     // 1. Create an HTTP client
     let client = reqwest::Client::new();
 
-    let balance_response = client
-        .get(format!("{}/balance/{}", &BASE_LOCAL_SERVER_URL, &address_from))
-        .send()
-        .await?;
+    let money_transfer_gas_limit = U256::from(APPROXIMATE_TRANSFER_GAS_PRICE);
 
-    if !balance_response.status().is_success() {
-        let error_text = balance_response.text().await?;
-        println!("Failed to get balance for address '{}' because: {}", &address_from, error_text);
-        return Err(error_text.into());
-    }
-
-    let balance_value: BalanceResponse = balance_response
-        .json::<BalanceResponse>()
-        .await?;
-
-    let balance_from = balance_value.balance;
-    println!("Got balance: '{}' in Wei", balance_from);
-
-    let params_response = client
-        .get(format!("{}/tx/{}", &BASE_LOCAL_SERVER_URL, &address_from))
-        .send()
-        .await?;
-
-    if !params_response.status().is_success() {
-        let error_text = params_response.text().await?;
-        println!("Failed to get balance for address '{}' because: {}", &address_from, error_text);
-        return Err(error_text.into())
-    }
-
-    let params_response = params_response.json::<TransactionParamsResponse>()
-        .await?;
-
-    let _nonce = U256::try_from(params_response.nonce)?;
-    let chain_id = params_response.chain_id;
-
-    let gas_limit = U256::from(21000);
-    println!("gas_limit = {gas_limit}");
-    let gas_price = U256::from(params_response.gas_price);
-    println!("gas_price = {}", &gas_price);
-    let gas_fee = gas_price * gas_limit;
-    println!("gas_fee = {gas_fee}");
-
-    let total_required = amount_wei
-        .checked_add(gas_fee)
-        .ok_or("overflow in 'total_required' calculation")?;
-    println!("total_required = {total_required}");
-
-    // check if balance is enough for transfer
-    if balance_from < total_required {
-        return Err(Box::new(ApiError::InsufficientFunds(address_from.to_string(), total_required)));
-    }
+    let params_response = check_account_balance(&address_from, amount_wei, money_transfer_gas_limit, &client).await?;
 
     // Create transaction for money transfer
     let tx_request = TransactionRequest::default()
@@ -95,9 +48,9 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
         .with_value(amount_wei)
         .with_nonce(params_response.nonce)
         .with_gas_price(params_response.gas_price)
-        .with_chain_id(ChainId::from( chain_id))
+        .with_chain_id(ChainId::from(params_response.chain_id))
         // Set gas limit. For simple ETH transfer 21000 is usually enough
-        .with_gas_limit(21000);
+        .with_gas_limit(APPROXIMATE_TRANSFER_GAS_PRICE);
 
     let wallet = EthereumWallet::from(account_signer_from);
     let tx_envelope = tx_request.build(&wallet).await?;
@@ -135,4 +88,57 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
         return Err(error_text.into())
     }
     Ok(())
+}
+
+pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spend_in_wei: U256, gas_limit: U256, client: &Client) -> (Result<TransactionParamsResponse, Box<dyn Error>>) {
+    let balance_response = client
+        .get(format!("{}/balance/{}", &BASE_LOCAL_SERVER_URL, &address_from))
+        .send()
+        .await?;
+
+    if !balance_response.status().is_success() {
+        let error_text = balance_response.text().await?;
+        println!("Failed to get account balance for address '{}' because: {}", &address_from, error_text);
+        return Err(error_text.into());
+    }
+
+    let balance_value: BalanceResponse = balance_response
+        .json::<BalanceResponse>()
+        .await?;
+
+    let balance_from = balance_value.balance;
+    println!("Got balance: '{}' in Wei", balance_from);
+
+    let params_response = client
+        .get(format!("{}/tx/{}", &BASE_LOCAL_SERVER_URL, &address_from))
+        .send()
+        .await?;
+
+    if !params_response.status().is_success() {
+        let error_text = params_response.text().await?;
+        println!("Failed to get balance for address '{}' because: {}", &address_from, error_text);
+        return Err(error_text.into())
+    }
+
+    let params_response = params_response.json::<TransactionParamsResponse>()
+        .await?;
+
+    let _nonce = U256::try_from(params_response.nonce)?;
+
+    println!("gas_limit = {gas_limit}");
+    let gas_price = U256::from(params_response.gas_price);
+    println!("gas_price = {}", &gas_price);
+    let gas_fee = gas_price * gas_limit;
+    println!("gas_fee = {gas_fee}");
+
+    let total_required = amount_to_spend_in_wei
+        .checked_add(gas_fee)
+        .ok_or("overflow in 'total_required' calculation")?;
+    println!("total_required = {total_required}");
+
+    // check if balance is enough for transfer
+    if balance_from < total_required {
+        return Err(Box::new(ApiError::InsufficientFunds(address_from.to_string(), total_required)));
+    }
+    Ok(params_response)
 }

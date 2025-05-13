@@ -62,7 +62,7 @@ There is a simple smart contract example included in project. See contract text 
 
 > ./solc-static-linux --bin --abi --overwrite -o ./ smart_contract.sol
 
-You can find two binary files in /client directory: **MessageStorage.abi** and **MessageStorage.bin**. I've created them beforehand.
+You can find two binary files in /client directory: **MessageStorage.abi** and **MessageStorage.bin**. I've created them beforehand. Compiler for contract can be [downloaded by link](https://github.com/ethereum/solidity/releases/).
 
 
 ### Store value in Deployed smart contract

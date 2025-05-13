@@ -6,7 +6,7 @@ use axum::{
 use thiserror::Error;
 use url::ParseError;
 use alloy::hex;
-use alloy::primitives::{AddressError, U256};
+use alloy::primitives::{AddressError, TxHash, U256};
 use alloy::transports::{RpcError, TransportErrorKind};
 
 #[derive(Error, Debug)]
@@ -43,6 +43,12 @@ pub enum ApiError {
     PendingTx(#[from] alloy::providers::PendingTransactionError),
     #[error("Incorrect Address: {0}")]
     IncorrectAddress(#[from] AddressError),
+    #[error("Receipt not found by tx hash: {0}")]
+    ReceiptNotFound(TxHash),
+    #[error("Receipt do not have 'block number' by tx hash: {0}")]
+    ReceiptBlockNotFound(TxHash),
+    #[error("Receipt do not have 'contract address' by tx hash: {0}")]
+    ReceiptContractAddressNotFound(TxHash),
 }
 
 impl IntoResponse for ApiError {
@@ -60,6 +66,9 @@ impl IntoResponse for ApiError {
             ApiError::SendTx(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::PendingTx(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::IncorrectAddress(_) => (StatusCode::BAD_REQUEST, self.to_string()),
+            ApiError::ReceiptNotFound(_) => (StatusCode::BAD_REQUEST, self.to_string()),
+            ApiError::ReceiptBlockNotFound(_) => (StatusCode::BAD_REQUEST, self.to_string()),
+            ApiError::ReceiptContractAddressNotFound(_) => (StatusCode::BAD_REQUEST, self.to_string()),
         };
 
         let body = Json(serde_json::json!({
