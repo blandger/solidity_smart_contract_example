@@ -12,6 +12,11 @@ You should run server first and then client. You should understand the blockchai
 
 ### Run server (in debug mode)
 
+It would be better for you to have your own, personal Infura development key so you can run server using it via env variable that way.
+
+> INFURA_RPC_URL=https://sepolia.infura.io/v3/XXXXXXXX cargo run -p server
+
+You can run server WITHOUT personal Infura key. But it works WORST.
 > cargo run -p server
 
 ### Run client (in debug mode)

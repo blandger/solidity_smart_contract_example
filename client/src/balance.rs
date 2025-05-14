@@ -4,7 +4,7 @@ use alloy_primitives::{Address, U256};
 use crate::errors::ClientError;
 use crate::load_wallet::recipient_address_from_string_or_local_file;
 use common::balance::BalanceResponse;
-use common::config::TEST_NET_RPC_URL;
+use common::config::init_test_net_url;
 use crate::config::BASE_LOCAL_SERVER_URL;
 use crate::errors::ClientError::Server;
 
@@ -50,9 +50,10 @@ pub(crate) fn convert_wei_to_eth(wei: U256) -> f64 {
 pub async fn check_wallet_balance_local_provider(name: &str) -> Result<f64, ClientError> {
 
     let address = Address::from_str(name)?;
-    
+
+    let rpc_url = init_test_net_url();
     // Connect to Sepolia
-    let provider = ProviderBuilder::new().connect(TEST_NET_RPC_URL).await?;
+    let provider = ProviderBuilder::new().connect(rpc_url).await?;
 
     // Check wallet balance
     let balance = provider.get_balance(address).await?;
