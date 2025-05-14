@@ -11,7 +11,7 @@ use common::error::ApiError;
 use common::transaction_params::TransactionParamsResponse;
 use common::transfer::{TransferPayload, TransferTransactionResponse};
 use crate::config::{APPROXIMATE_TRANSFER_GAS_PRICE, BASE_LOCAL_SERVER_URL};
-use crate::load_wallet::load_wallet_from_file;
+use crate::load_wallet::{load_wallet_from_file, recipient_address_from_string_or_local_file};
 
 /// Transfer some tokens from one account to another using server side.
 pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str) -> Result<(), Box<dyn Error>> {
@@ -19,11 +19,11 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
 
     // 'account from' Read private key from file
     let account_signer_from = load_wallet_from_file(account_from)?;
-    let account_to = load_wallet_from_file(account_to)?;
+    let address_to = recipient_address_from_string_or_local_file(account_to)?;
     let address_from = account_signer_from.address();
-    println!("Wallet address from: {}", address_from);
-
-    let address_to = account_to.address();
+    println!("Wallet Sender address (from): {}", &address_from);
+    println!("Wallet Recipient address (to): {}", &address_to);
+    println!("Amount to send: {}", &amount);
 
     let value = amount.parse::<f64>().expect(format!("Amount '{}' to transfer is not parsed !", amount).as_str());
     if value.is_nan() || value.is_sign_negative() {
@@ -90,7 +90,7 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
     Ok(())
 }
 
-pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spend_in_wei: U256, gas_limit: U256, client: &Client) -> (Result<TransactionParamsResponse, Box<dyn Error>>) {
+pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spend_in_wei: U256, gas_limit: U256, client: &Client) -> Result<TransactionParamsResponse, Box<dyn Error>> {
     let balance_response = client
         .get(format!("{}/balance/{}", &BASE_LOCAL_SERVER_URL, &address_from))
         .send()

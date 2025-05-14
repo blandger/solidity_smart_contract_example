@@ -13,8 +13,8 @@ pub async fn get_balance(
     println!("get_balance_route... address: {}", &address);
     let address = Address::parse_checksummed(&address, None)?;
     let balance = state.provider.get_balance(address).await?;
-    let wei = convert_wei_to_eth(balance);
-    println!("get_balance_route: address: {} = {} wei", &address, &wei);
+    let eth = convert_wei_to_eth(balance);
+    println!("Got balance for address: '{}' = '{}' wei ({} eth)", &address, &balance, &eth);
     Ok(Json(BalanceResponse {
         balance,
     }))

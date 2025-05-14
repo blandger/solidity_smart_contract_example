@@ -3,18 +3,18 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StoreMessagePayload {
     /// Contract's address
-    contract_address: String,
+    pub contract_address: String,
     /// Hex-encoded signed transaction for calling storeMessage
-    signed_transaction: String,
+    pub signed_transaction: String,
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StoreInContractTransactionResponse {
     /// Transaction hash
-    transaction_hash: String,
+    pub transaction_hash: String,
     /// Block number (if transaction is stored in block)
-    block_number: Option<u64>,
+    pub block_number: Option<u64>,
     /// Transaction status (sent, confirmed, cancelled)
-    status: TransactionStatus,
+    pub status: TransactionStatus,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

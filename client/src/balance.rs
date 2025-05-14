@@ -1,14 +1,13 @@
 use alloy_primitives::U256;
 use crate::errors::ClientError;
-use crate::load_wallet::load_wallet_from_file;
+use crate::load_wallet::recipient_address_from_string_or_local_file;
 use common::balance::BalanceResponse;
 use crate::config::BASE_LOCAL_SERVER_URL;
 use crate::errors::ClientError::Server;
 
 pub async fn check_wallet_balance(name: &str) -> Result<f64, ClientError> {
-    println!("Check balance signer key: {}", name);
-    let wallet = load_wallet_from_file(name)?;
-    let address = wallet.address();
+    println!("Check balance by public address as string (OR by local private signer key file): {}", name);
+    let address = recipient_address_from_string_or_local_file(name)?;
     println!("Wallet address: {}", address);
 
     // 1. Create an HTTP client
@@ -28,9 +27,10 @@ pub async fn check_wallet_balance(name: &str) -> Result<f64, ClientError> {
     let balance: BalanceResponse = balance_response
         .json::<BalanceResponse>()
         .await?;
-    let wei = convert_wei_to_eth(balance.balance);
-    println!("Balance: '{:?}' wei (ETH)", &wei);
-    Ok(wei)
+    let wei = balance.balance;
+    println!("Balance: '{:?}' wei", &wei);
+    let eth = convert_wei_to_eth(balance.balance);
+    Ok(eth)
 }
 
 fn convert_wei_to_eth(wei: U256) -> f64 {

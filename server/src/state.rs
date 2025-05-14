@@ -6,6 +6,7 @@ use std::sync::Arc;
 use axum::extract::FromRef;
 
 pub fn create_shared_provider() -> Result<Arc<dyn Provider>, ApiError> {
+    println!("Init ETH RPC provider by url: '{}'", &TEST_NET_RPC_URL);
     let rpc_url = Url::parse(TEST_NET_RPC_URL)?;
     let provider = ProviderBuilder::new().connect_http(rpc_url);
     Ok(Arc::new(provider))

@@ -28,8 +28,11 @@ pub async fn deploy_contract(contract: &str, signer: &str) -> Result<(), Box<dyn
 
     let contract_gas_limit = U256::from(APPROXIMATE_CONTRACT_DEPLOY_GAS_PRICE);
 
+    // Check balance
+    println!("Checking balance before deploying contract: '{}' (wei)", &APPROXIMATE_CONTRACT_DEPLOY_GAS_PRICE);
     let params_response = check_account_balance(&account_signer_from.address(), U256::from(0), contract_gas_limit, &client).await?;
 
+    println!("Start contract deployment by owner: '{}'", &account_signer_from.address());
     let tx_request = TransactionRequest::default()
         .with_from(account_signer_from.address())
         .with_nonce(params_response.nonce)
@@ -50,6 +53,8 @@ pub async fn deploy_contract(contract: &str, signer: &str) -> Result<(), Box<dyn
         signed_transaction: signed_tx_hex,
     };
 
+
+    println!("Sending tx by owner: '{}'", &account_signer_from.address());
     // 3. Send the transaction to local server
     let response = client.post(format!("{}/deploy", &BASE_LOCAL_SERVER_URL))
         .json(&signed_transaction)
@@ -60,8 +65,8 @@ pub async fn deploy_contract(contract: &str, signer: &str) -> Result<(), Box<dyn
         let deploy_response = response.json::<DeployContractResponse>().await?;
 
         if let Some(tx_hash) = &deploy_response.transaction_hash {
-            println!("Transaction sent successfully!");
-            println!("Transaction hash: {}", tx_hash);
+            println!("Deploy Transaction sent successfully!");
+            println!("Deploy Transaction hash: {}", tx_hash);
         }
 
         println!("Status: {:?}", &deploy_response.status);

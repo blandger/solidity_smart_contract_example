@@ -1,6 +1,5 @@
 use std::time::Duration;
 use alloy::hex;
-use alloy_primitives::Address;
 use axum::extract::State;
 use axum::Json;
 use common::deploy::{DeployContractPayload, DeployContractResponse};
@@ -13,13 +12,13 @@ pub async fn deploy_contract(
     Json(payload): Json<DeployContractPayload>,
 ) -> Result<Json<DeployContractResponse>, ApiError> {
     println!("deploy_contract... address: {}", &payload.address_from);
-    let address = Address::parse_checksummed(&payload.address_from, None)?;
 
     let provider = state.provider;
 
     let tx_bytes = hex::decode(&payload.signed_transaction)?;
     let tx: &[u8] = &tx_bytes;
 
+    println!("Sending smart contract deploy tx ...");
     let builder = provider
         .send_raw_transaction(tx)
         .await?
@@ -29,16 +28,17 @@ pub async fn deploy_contract(
     let pending_tx = builder.register().await?;
 
     let receipt_tx_hash = pending_tx.await?;
-    // let tx_hash = pending_tx.tx_hash();
 
-    println!("Sent deploy tx: {}", &receipt_tx_hash);
+    println!("Sent deploy tx: '{}' ...", &receipt_tx_hash);
 
     let receipt = provider
         .get_transaction_receipt(receipt_tx_hash)
         .await?;
 
+    println!("Got receipt for tx: {}", &receipt_tx_hash);
+
     let receipt = receipt.ok_or_else(|| ApiError::ReceiptNotFound(receipt_tx_hash))?;
-    
+
     let block_number = receipt.block_number.ok_or_else(|| ApiError::ReceiptBlockNotFound(receipt_tx_hash))?;
 
     let contract_address = receipt.contract_address

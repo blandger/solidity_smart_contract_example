@@ -11,7 +11,7 @@ pub async fn retrieve_message(
     State(state): State<AppState>,
     Path(contract_address): Path<String>,
 ) -> Result<Json<RetrieveMessageResponse>, ApiError> {
-    let provider = state.provider;
+    let _provider = state.provider;
     Ok(Json(RetrieveMessageResponse {
         message: format!("Received contract: {}", contract_address),
         last_updated_block: None,
