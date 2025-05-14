@@ -30,7 +30,12 @@ Creates wallet (two files with private and public keys) using specified name and
 
 ### Get wallet balance
 
-The 'wallet-name' is private key of wallet stored as local file in current directory. 
+The 'wallet-name' is a wallet address in hex format. Server MUST be running to get balance.
+
+> cargo run -p client -- get-balance 0x3ab1d9D1aA3d97181FdA1a1Ff747009474655263
+
+OR
+The 'wallet-name' can be a private key of wallet stored as local file in current directory. Just for testing purposes.
 
 > cargo run -p client -- get-balance wallet-name
 
@@ -38,11 +43,17 @@ Reads wallet file (wallet-name.private), gets balance from server and prints res
 
 ### Transfer from one wallet to another
 
-The 'from-name' is local private key file (from-name.private) in current directory. That waller should HAVE amount of ETH tokens to transfer. You can 'mine' tokens in test network (Sepolia or other) by using 'faucet'. How to do that is out of scope of this project.
+The 'from-name' is local private key file (from-name.private) in current directory. That waller should HAVE amount of ETH tokens to transfer from. You can 'mine' tokens in test network (Sepolia or other) by using 'faucet'. How to do that is out of scope of this project.
 
-The 'to-name' is local private key file (to-name.private) in current directory.
+The 'to-name' can be
+- a 'wallet-name' is a wallet address in hex format.
+- a local private key file (to-name.private) in current directory. Just for testing purposes.
 
 The 'amount' is ethereum token not negative amount as FLOAT/INT number. Examples are 0.00001, 0.1, 1. The specified amount (with transaction fee) available in wallet is checked before proceeding with transaction.
+
+> cargo run -p client -- transfer from-name 0x3ab1d9D1aA........ 0.0001
+
+OR 
 
 > cargo run -p client -- transfer from-name to-name amount
 

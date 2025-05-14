@@ -56,10 +56,11 @@ pub async fn deploy_contract(contract: &str, signer: &str) -> Result<(), Box<dyn
 
     println!("Sending tx by owner: '{}'", &account_signer_from.address());
     // 3. Send the transaction to local server
-    let response = client.post(format!("{}/deploy", &BASE_LOCAL_SERVER_URL))
+    let response = client.post(format!("{}/deploy-contract", &BASE_LOCAL_SERVER_URL))
         .json(&signed_transaction)
         .send()
         .await?;
+    println!("Got response: {:?}", &response);
 
     if response.status().is_success() {
         let deploy_response = response.json::<DeployContractResponse>().await?;

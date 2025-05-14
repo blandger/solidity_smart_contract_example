@@ -8,7 +8,7 @@ pub mod read;
 pub mod store;
 pub mod transfer;
 
-use crate::balance::check_wallet_balance;
+use crate::balance::{check_wallet_balance, check_wallet_balance_local_provider};
 use crate::create::create_wallet;
 use crate::deploy::deploy_contract;
 use crate::store::store_message;
@@ -22,6 +22,10 @@ use crate::read::read_message;
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
     if let Err(e) = run_app().await {
         eprintln!("Error: {}", e); // Use {:?}
         std::process::exit(1);
@@ -123,6 +127,7 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
         Some(("get-balance", sub_matches)) => {
             let name = sub_matches.get_one::<String>("name").unwrap();
             check_wallet_balance(name).await?;
+            // check_wallet_balance_local_provider(name).await?;
         }
         Some(("transfer", sub_matches)) => {
             // that is a local file name !!

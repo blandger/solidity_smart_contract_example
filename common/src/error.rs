@@ -17,8 +17,8 @@ pub enum ApiError {
     #[error("Invalid transaction format: {0}")]
     InvalidTransactionFormat(String),
 
-    #[error("Insufficient funds on address: {0} for amount = {1} ETH")]
-    InsufficientFunds(String, U256),
+    #[error("Insufficient funds on address: {0}, required amount = {1}, available amount = {2}, not enough: {3} (wei) = {4} (ETH)")]
+    InsufficientFunds(String, U256, U256, U256, f64),
 
     #[error("Contract deployment error: {0}")]
     ContractDeploymentError(String),
@@ -56,7 +56,7 @@ impl IntoResponse for ApiError {
         let (status, error_message) = match self {
             ApiError::NodeConnectionError(_) => (StatusCode::SERVICE_UNAVAILABLE, self.to_string()),
             ApiError::InvalidTransactionFormat(_) => (StatusCode::BAD_REQUEST, self.to_string()),
-            ApiError::InsufficientFunds(_, _) => (StatusCode::PAYMENT_REQUIRED, self.to_string()),
+            ApiError::InsufficientFunds(_, _, _, _, _) => (StatusCode::PAYMENT_REQUIRED, self.to_string()),
             ApiError::ContractDeploymentError(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::TransactionTimeout(_) => (StatusCode::GATEWAY_TIMEOUT, self.to_string()),
             ApiError::InternalServerError(_) /*| ApiError::EthereumError(_) */=>

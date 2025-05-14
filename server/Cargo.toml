@@ -15,3 +15,5 @@ alloy.workspace = true
 alloy-primitives.workspace = true
 tokio.workspace = true
 axum-macros.workspace = true
+tracing-subscriber.workspace = true
+tracing.workspace = true

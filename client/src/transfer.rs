@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::f64;
+use std::ops::Sub;
 use alloy::eips::Encodable2718;
 use alloy::hex;
 use alloy::network::{EthereumWallet, TransactionBuilder};
@@ -10,6 +11,7 @@ use common::balance::BalanceResponse;
 use common::error::ApiError;
 use common::transaction_params::TransactionParamsResponse;
 use common::transfer::{TransferPayload, TransferTransactionResponse};
+use crate::balance::convert_wei_to_eth;
 use crate::config::{APPROXIMATE_TRANSFER_GAS_PRICE, BASE_LOCAL_SERVER_URL};
 use crate::load_wallet::{load_wallet_from_file, recipient_address_from_string_or_local_file};
 
@@ -129,7 +131,7 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
     let gas_price = U256::from(params_response.gas_price);
     println!("gas_price = {}", &gas_price);
     let gas_fee = gas_price * gas_limit;
-    println!("gas_fee = {gas_fee}");
+    println!("gas_fee = {gas_fee} = ");
 
     let total_required = amount_to_spend_in_wei
         .checked_add(gas_fee)
@@ -138,7 +140,7 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
 
     // check if balance is enough for transfer
     if balance_from < total_required {
-        return Err(Box::new(ApiError::InsufficientFunds(address_from.to_string(), total_required)));
+        return Err(Box::new(ApiError::InsufficientFunds(address_from.to_string(), total_required, balance_from, total_required.sub(balance_from), convert_wei_to_eth(total_required.sub(balance_from)))));
     }
     Ok(params_response)
 }

@@ -16,6 +16,10 @@ use crate::handler::transfer::transfer;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+    
     let state = AppState::new(create_shared_provider()?);
 
     let api_routes = Router::new()
