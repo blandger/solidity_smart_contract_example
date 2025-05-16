@@ -8,9 +8,10 @@ pub mod read;
 pub mod store;
 pub mod transfer;
 
-use crate::balance::{check_wallet_balance, check_wallet_balance_local_provider};
+use crate::balance::check_wallet_balance;
 use crate::create::create_wallet;
 use crate::deploy::deploy_contract;
+use crate::read::read_message;
 use crate::store::store_message;
 use crate::transfer::transfer_amount;
 use clap::{Arg, Command};
@@ -18,12 +19,11 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::sync::OnceLock;
 use tokio;
-use crate::read::read_message;
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .init();
 
     if let Err(e) = run_app().await {

@@ -1,33 +1,30 @@
 pub mod handler;
 pub mod state;
 
-use handler::deploy::deploy_contract;
-use handler::hello::static_hello;
-use handler::retrieve::retrieve_message_route;
-use crate::state::{create_shared_provider, AppState};
-use handler::store::store_message;
-use axum::Router;
-use axum::routing::{get, post};
-use std::error::Error;
-use std::net::SocketAddr;
 use crate::handler::balance::get_balance_route;
 use crate::handler::transaction_params::get_transaction_params_route;
 use crate::handler::transfer::transfer;
+use crate::state::{AppState, create_shared_provider};
+use axum::Router;
+use axum::routing::{get, post};
+use handler::deploy::deploy_contract;
+use handler::hello::static_hello;
+use handler::retrieve::retrieve_message_route;
+use handler::store::store_message;
+use std::error::Error;
+use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .init();
-    
+
     let state = AppState::new(create_shared_provider()?);
 
     let api_routes = Router::new()
         .route("/test", get(static_hello))
-        .route(
-            "/balance/{address}",
-            get_balance_route(),
-        )
+        .route("/balance/{address}", get_balance_route())
         .route("/transfer", post(transfer))
         .route("/deploy-contract", post(deploy_contract))
         .with_state(state.clone())
@@ -38,10 +35,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             retrieve_message_route(),
         )
         .with_state(state.clone())
-        .route(
-            "/tx/{address}",
-            get_transaction_params_route(),
-        )
+        .route("/tx/{address}", get_transaction_params_route())
         .with_state(state.clone());
 
     let app = with_prefix("/api", api_routes);

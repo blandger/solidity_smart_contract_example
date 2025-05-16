@@ -109,7 +109,7 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
         .await?;
 
     let balance_from = balance_value.balance;
-    println!("Got balance: '{}' in Wei", balance_from);
+    println!("Got balance: '{}' in Wei ({} ETH)", balance_from, convert_wei_to_eth(balance_from));
 
     let params_response = client
         .get(format!("{}/tx/{}", &BASE_LOCAL_SERVER_URL, &address_from))
@@ -130,13 +130,13 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
     println!("gas_limit = {gas_limit}");
     let gas_price = U256::from(params_response.gas_price);
     println!("gas_price = {}", &gas_price);
-    let gas_fee = gas_price * gas_limit;
-    println!("gas_fee = {gas_fee} = ");
+    let gas_fee = gas_price.checked_mul(gas_limit).unwrap();
+    println!("gas_fee ({gas_fee}) = gas_price ({gas_price}) * gas_limit ({gas_limit}) = {}", &gas_price * &gas_limit);
 
     let total_required = amount_to_spend_in_wei
         .checked_add(gas_fee)
         .ok_or("overflow in 'total_required' calculation")?;
-    println!("total_required = {total_required}");
+    println!("total_required = {total_required} VS gas_fee = {gas_fee} VS balance_from = {balance_from}");
 
     // check if balance is enough for transfer
     if balance_from < total_required {

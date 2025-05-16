@@ -24,7 +24,10 @@ pub async fn deploy_contract(contract: &str, signer: &str) -> Result<(), Box<dyn
 
     // Here will be your code for signing the transaction and sending to REST API
     // 1. Create an HTTP client
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(6000)) // 10 minutes
+        .build()
+        .expect("Failed to build reqwest client");
 
     let contract_gas_limit = U256::from(APPROXIMATE_CONTRACT_DEPLOY_GAS_PRICE);
 

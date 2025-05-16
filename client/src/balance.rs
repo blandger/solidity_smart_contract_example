@@ -14,7 +14,10 @@ pub async fn check_wallet_balance(name: &str) -> Result<f64, ClientError> {
     println!("Wallet address: {}", address);
 
     // 1. Create an HTTP client
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(300)) // 5 minutes
+        .build()
+        .expect("Failed to build reqwest client");
 
     let balance_response = client
         .get(format!("{}/balance/{}", &BASE_LOCAL_SERVER_URL, &address))
@@ -31,8 +34,8 @@ pub async fn check_wallet_balance(name: &str) -> Result<f64, ClientError> {
         .json::<BalanceResponse>()
         .await?;
     let wei = balance.balance;
-    println!("Balance: '{:?}' wei", &wei);
     let eth = convert_wei_to_eth(balance.balance);
+    println!("Balance: '{:?}' wei ({} ETH)", &wei, eth);
     Ok(eth)
 }
 
@@ -47,7 +50,7 @@ pub(crate) fn convert_wei_to_eth(wei: U256) -> f64 {
     eth_value
 }
 
-pub async fn check_wallet_balance_local_provider(name: &str) -> Result<f64, ClientError> {
+pub async fn _check_wallet_balance_local_provider(name: &str) -> Result<f64, ClientError> {
 
     let address = Address::from_str(name)?;
 
@@ -57,9 +60,8 @@ pub async fn check_wallet_balance_local_provider(name: &str) -> Result<f64, Clie
 
     // Check wallet balance
     let balance = provider.get_balance(address).await?;
-    // let balance = provider.get_balance_with_block(address, BlockId::Number(BlockNumberOrTag::Latest)).await?;
 
-    println!("Balance: '{}' = '{}' wei ( {} ETH)", &address, &balance, convert_wei_to_eth(balance));
     let eth = convert_wei_to_eth(balance);
+    println!("Balance: '{}' = '{}' wei ( {} ETH)", &address, &balance, eth);
     Ok(eth)
 }

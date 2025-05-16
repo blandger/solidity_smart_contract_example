@@ -1,12 +1,16 @@
 use std::time::Duration;
 use alloy::hex;
+use alloy_primitives::private::rand;
 use axum::extract::State;
 use axum::Json;
+use axum_macros::debug_handler;
+use rand::Rng;
 use common::deploy::{DeployContractPayload, DeployContractResponse};
 use common::error::ApiError;
 use common::store::TransactionStatus;
 use crate::state::AppState;
 
+#[debug_handler]
 pub async fn deploy_contract(
     State(state): State<AppState>,
     Json(payload): Json<DeployContractPayload>,
@@ -19,40 +23,70 @@ pub async fn deploy_contract(
     let tx: &[u8] = &tx_bytes;
 
     println!("Sending smart contract deploy tx ...");
-    let builder = provider
+    // Send the transaction, but do not wait for confirmations here
+    let pending_tx_hash = provider
         .send_raw_transaction(tx)
-        .await?
-        .with_required_confirmations(2)
-        .with_timeout(Some(Duration::from_secs(60)));
-
-    let pending_tx = builder.register().await?;
-
-    let receipt_tx_hash = pending_tx.await?;
-
-    println!("Sent deploy tx: '{}' ...", &receipt_tx_hash);
-
-    let receipt = provider
-        .get_transaction_receipt(receipt_tx_hash)
         .await?;
 
-    println!("Got receipt for tx: {}", &receipt_tx_hash);
+    let tx_hash = pending_tx_hash.tx_hash();
+    println!("Got transaction hash: {}", tx_hash);
 
-    let receipt = receipt.ok_or_else(|| ApiError::ReceiptNotFound(receipt_tx_hash))?;
+    // Optionally - wait for the transaction to be sent to the network
+    // but do not wait for block confirmations
+    let mut attempts = 0;
+    let max_attempts = 10;
+    let mut receipt = None;
 
-    let block_number = receipt.block_number.ok_or_else(|| ApiError::ReceiptBlockNotFound(receipt_tx_hash))?;
+    // Add a limited number of attempts to get a receipt
+    while attempts < max_attempts {
+        attempts += 1;
+        println!("Attempt {} to get receipt", attempts);
+        let jitter = {
+            let mut rng = rand::rng();
+            rng.random_range(1..9)
+        };
+        println!("Generated jitter: {}", jitter);
 
-    let contract_address = receipt.contract_address
-        .ok_or_else(|| ApiError::ReceiptContractAddressNotFound(receipt_tx_hash))?;
+        match provider.get_transaction_receipt(tx_hash.clone()).await {
+            Ok(Some(r)) => {
+                receipt = Some(r);
+                break;
+            }
+            Ok(None) => {
+                println!("Receipt not yet available, waiting...");
+                tokio::time::sleep(Duration::from_secs(jitter * attempts)).await;
+            }
+            Err(e) => {
+                println!("Error getting receipt: {:?}", e);
+                tokio::time::sleep(Duration::from_secs(jitter * attempts)).await;
+            }
+        }
+    }
 
-    println!(
-        "Contract deployed at address '{}' in block '{}",
-        contract_address, block_number
-    );
+    // Even if we didn't get a receipt, return success with the transaction hash
+    match receipt {
+        Some(r) => {
+            let contract_address = r.contract_address
+                .ok_or_else(|| ApiError::ReceiptContractAddressNotFound(tx_hash.clone()))?;
 
-    Ok(Json(DeployContractResponse {
-        transaction_hash: Some(receipt_tx_hash.to_string()),
-        contract_address: contract_address.to_string(),
-        block_number: Some(block_number),
-        status: TransactionStatus::Confirmed,
-    }))
+            println!("SUCCESS! Contract is deployed at address '{}'", contract_address);
+
+            Ok(Json(DeployContractResponse {
+                transaction_hash: Some(tx_hash.clone().to_string()),
+                contract_address: contract_address.to_string(),
+                block_number: Some(r.block_number.unwrap()),
+                status: TransactionStatus::Confirmed,
+            }))
+        }
+        None => {
+            println!("Transaction sent but receipt not yet available");
+            // Return a successful response with the transaction hash, but without full data
+            Ok(Json(DeployContractResponse {
+                transaction_hash: Some(tx_hash.to_string()),
+                contract_address: String::from("Pending"), // Not successful probably
+                block_number: None,
+                status: TransactionStatus::Pending,
+            }))
+        }
+    }
 }
