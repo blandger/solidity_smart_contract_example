@@ -53,6 +53,8 @@ pub enum ApiError {
     ReadAbi(#[from] serde_json::Error),
     #[error("Error reading contract abi method: {0}")]
     CallReadAbi(#[from] alloy::contract::Error),
+    #[error("Reading contract method empty value: {0}")]
+    EmptyReadMethod(String),
 }
 
 impl IntoResponse for ApiError {
@@ -75,6 +77,7 @@ impl IntoResponse for ApiError {
             ApiError::ReceiptContractAddressNotFound(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::ReadAbi(_) => (StatusCode::SERVICE_UNAVAILABLE, self.to_string()),
             ApiError::CallReadAbi(_) => (StatusCode::BAD_REQUEST, self.to_string()),
+            ApiError::EmptyReadMethod(_) => (StatusCode::BAD_REQUEST, self.to_string()),
         };
 
         let body = Json(serde_json::json!({

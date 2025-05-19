@@ -35,7 +35,11 @@ impl MessageStorageContract {
         let tx_builder = self.contract_instance.function("retrieveMessage", &[])?;
         let tx = tx_builder.call().await?;
         println!("contract tx = {:?}", &tx);
-        let message = tx.first().unwrap().as_str().unwrap();
+        let message = tx
+            .first()
+            .ok_or_else(|| ApiError::EmptyReadMethod("No result returned from contract".into()))?
+            .as_str()
+            .ok_or_else(|| ApiError::EmptyReadMethod("Result is not a string".into()))?;
         println!("Got message from contract: '{}'...", &message);
         Ok(message.to_string())
     }
