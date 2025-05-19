@@ -1,3 +1,4 @@
+use alloy::providers::Provider;
 use alloy_primitives::Address;
 use axum::extract::{Path, State};
 use axum::Json;

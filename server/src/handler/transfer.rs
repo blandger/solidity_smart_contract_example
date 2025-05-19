@@ -1,5 +1,6 @@
 use crate::state::AppState;
 use alloy::hex;
+use alloy::providers::Provider;
 use axum::extract::State;
 use common::error::ApiError;
 use common::store::TransactionStatus;

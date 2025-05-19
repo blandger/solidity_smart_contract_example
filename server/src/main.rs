@@ -4,7 +4,7 @@ pub mod state;
 use crate::handler::balance::get_balance_route;
 use crate::handler::transaction_params::get_transaction_params_route;
 use crate::handler::transfer::transfer;
-use crate::state::{AppState, create_shared_provider};
+use crate::state::AppState;
 use axum::Router;
 use axum::routing::{get, post};
 use handler::deploy::deploy_contract;
@@ -13,6 +13,7 @@ use handler::retrieve::retrieve_message_route;
 use handler::store::store_message;
 use std::error::Error;
 use std::net::SocketAddr;
+use common::provider::create_shared_provider;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

@@ -63,6 +63,7 @@ OR
 > cargo run -p client -- transfer from-name to-name amount
 
 ### Deploy compiled smart contract
+I've put already compiled smart contract files in /client directory.
 
 The smart contract example can be called for 'storing' new value ONLY by OWNER. It can be called for 'reading' value by ANYONE. Deployment is done by OWNER one time and later can be called using it hash.
 
@@ -79,7 +80,17 @@ There is a simple smart contract example included in project. See contract text 
 > ./solc-static-linux --bin --abi --overwrite -o ./ smart_contract.sol
 
 You can find two binary files in /client directory: **MessageStorage.abi** and **MessageStorage.bin**. I've created them beforehand. Compiler for contract can be [downloaded by link](https://github.com/ethereum/solidity/releases/).
+There is a copy of compiled contract in /common/src/MessageStorage.abi
 
+
+### Read value from Deployed smart contract
+
+Contract's method for reading value can be called by ANY user (the existing wallet). The included contract doesn't have restriction to read value.
+
+> cargo run -p client -- read contract-address
+
+An example is following:
+> cargo run -p client -- read 0x794dade1fDe57801ADD4D10D19521xxxxxxxxxxx
 
 ### Store value in Deployed smart contract
 

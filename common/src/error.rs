@@ -49,6 +49,10 @@ pub enum ApiError {
     ReceiptBlockNotFound(TxHash),
     #[error("Receipt do not have 'contract address' by tx hash: {0}")]
     ReceiptContractAddressNotFound(TxHash),
+    #[error("Error reading contract abi file: {0}")]
+    ReadAbi(#[from] serde_json::Error),
+    #[error("Error reading contract abi method: {0}")]
+    CallReadAbi(#[from] alloy::contract::Error),
 }
 
 impl IntoResponse for ApiError {
@@ -69,6 +73,8 @@ impl IntoResponse for ApiError {
             ApiError::ReceiptNotFound(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::ReceiptBlockNotFound(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::ReceiptContractAddressNotFound(_) => (StatusCode::BAD_REQUEST, self.to_string()),
+            ApiError::ReadAbi(_) => (StatusCode::SERVICE_UNAVAILABLE, self.to_string()),
+            ApiError::CallReadAbi(_) => (StatusCode::BAD_REQUEST, self.to_string()),
         };
 
         let body = Json(serde_json::json!({

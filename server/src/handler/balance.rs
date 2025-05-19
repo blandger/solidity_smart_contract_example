@@ -1,3 +1,4 @@
+use alloy::providers::Provider;
 use alloy_primitives::{Address, U256};
 use axum::extract::{Path, State};
 use axum::Json;
@@ -7,8 +8,8 @@ use common::error::ApiError;
 use crate::state::AppState;
 
 pub async fn get_balance(
-    Path(address): Path<String>,
     State(state): State<AppState>,
+    Path(address): Path<String>,
 ) -> Result<Json<BalanceResponse>, ApiError> {
     println!("get_balance_route... address: {}", &address);
     let address = Address::parse_checksummed(&address, None)?;

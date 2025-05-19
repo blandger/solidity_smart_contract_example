@@ -1,7 +1,9 @@
 pub mod balance;
 pub mod config;
+pub mod contract;
 pub mod deploy;
 pub mod error;
+pub mod provider;
 pub mod retrieve;
 pub mod store;
 pub mod transaction_params;

@@ -1,5 +1,6 @@
 use std::time::Duration;
 use alloy::hex;
+use alloy::providers::Provider;
 use axum::extract::State;
 use axum::Json;
 use common::error::ApiError;
