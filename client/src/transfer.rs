@@ -27,7 +27,7 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
     println!("Wallet Recipient address (to): {}", &address_to);
     println!("Amount to send: {}", &amount);
 
-    let value = amount.parse::<f64>().expect(format!("Amount '{}' to transfer is not parsed !", amount).as_str());
+    let value = amount.parse::<f64>()?;
     if value.is_nan() || value.is_sign_negative() {
         return Err("Negative Amount to transfer is not correct !".into());
     }
@@ -131,7 +131,7 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
     let gas_price = U256::from(params_response.gas_price);
     println!("gas_price = {}", &gas_price);
     let gas_fee = gas_price.checked_mul(gas_limit).unwrap();
-    println!("gas_fee ({gas_fee}) = gas_price ({gas_price}) * gas_limit ({gas_limit}) = {}", &gas_price * &gas_limit);
+    println!("gas_fee ({gas_fee}) = gas_price ({gas_price}) * gas_limit ({gas_limit}) = {}", gas_price * gas_limit);
 
     let total_required = amount_to_spend_in_wei
         .checked_add(gas_fee)
@@ -140,7 +140,7 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
 
     // check if balance is enough for transfer
     if balance_from < total_required {
-        return Err(Box::new(ApiError::InsufficientFunds(address_from.to_string(), total_required, balance_from, total_required.sub(balance_from), convert_wei_to_eth(total_required.sub(balance_from)))));
+        return Err(Box::new(ApiError::InsufficientFunds(address_from.to_string(), Box::new(total_required), Box::new(balance_from), Box::new(total_required.sub(balance_from)), convert_wei_to_eth(total_required.sub(balance_from)))));
     }
     Ok(params_response)
 }

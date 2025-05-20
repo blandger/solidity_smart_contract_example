@@ -45,9 +45,7 @@ pub(crate) fn convert_wei_to_eth(wei: U256) -> f64 {
     let wei_value_u128: u128 = wei_value.parse().unwrap_or(0);
 
     // Convert ETH to float point number
-    let eth_value = wei_value_u128 as f64 / 1_000_000_000_000_000_000.0;
-
-    eth_value
+    wei_value_u128 as f64 / 1_000_000_000_000_000_000.0
 }
 
 pub async fn _check_wallet_balance_local_provider(name: &str) -> Result<f64, ClientError> {

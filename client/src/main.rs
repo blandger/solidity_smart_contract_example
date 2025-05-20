@@ -18,7 +18,6 @@ use clap::{Arg, Command};
 use std::error::Error;
 use std::path::PathBuf;
 use std::sync::OnceLock;
-use tokio;
 
 #[tokio::main]
 async fn main() {

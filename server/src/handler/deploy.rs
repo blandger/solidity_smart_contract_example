@@ -48,7 +48,7 @@ pub async fn deploy_contract(
         };
         println!("Generated jitter: {}", jitter);
 
-        match provider.get_transaction_receipt(tx_hash.clone()).await {
+        match provider.get_transaction_receipt(*tx_hash).await {
             Ok(Some(r)) => {
                 receipt = Some(r);
                 break;
@@ -68,12 +68,12 @@ pub async fn deploy_contract(
     match receipt {
         Some(r) => {
             let contract_address = r.contract_address
-                .ok_or_else(|| ApiError::ReceiptContractAddressNotFound(tx_hash.clone()))?;
+                .ok_or_else(|| ApiError::ReceiptContractAddressNotFound(*tx_hash))?;
 
             println!("SUCCESS! Contract is deployed at address '{}'", contract_address);
 
             Ok(Json(DeployContractResponse {
-                transaction_hash: Some(tx_hash.clone().to_string()),
+                transaction_hash: Some(tx_hash.to_string()),
                 contract_address: contract_address.to_string(),
                 block_number: Some(r.block_number.unwrap()),
                 status: TransactionStatus::Confirmed,

@@ -18,7 +18,7 @@ pub async fn transfer(
 
     // Send a transaction, and configure the pending transaction.
     let builder = provider
-        .send_raw_transaction(&tx)
+        .send_raw_transaction(tx)
         .await?
         .with_required_confirmations(2)
         .with_timeout(Some(std::time::Duration::from_secs(60)));

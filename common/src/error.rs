@@ -19,7 +19,7 @@ pub enum ApiError {
     InvalidTransactionFormat(String),
 
     #[error("Insufficient funds on address: {0}, required amount = {1}, available amount = {2}, not enough: {3} (wei) = {4} (ETH)")]
-    InsufficientFunds(String, U256, U256, U256, f64),
+    InsufficientFunds(String, Box<U256>, Box<U256>, Box<U256>, f64),
 
     #[error("Contract deployment error: {0}")]
     ContractDeploymentError(String),

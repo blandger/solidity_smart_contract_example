@@ -33,7 +33,7 @@ impl MessageStorageContract {
         provider: Arc<DefaultEthProvider>,
     ) -> Result<Self, ApiError> {
         // Get the contract ABI from include_str.
-        let abi = serde_json::from_str(&ABI)?;
+        let abi = serde_json::from_str(ABI)?;
 
         // Create a new `ContractInstance` from the abi
         let contract =
