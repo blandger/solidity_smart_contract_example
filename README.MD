@@ -12,36 +12,44 @@ You should run server first and then client. You should understand the blockchai
 
 ### Run server (in debug mode)
 
-It would be better for you to have your own, personal Infura development key so you can run server using it via env variable that way.
+I STRONGLY RECOMMEND you to have your own, personal Infura development key so you can run server using it via env variable that way.
 
 > INFURA_RPC_URL=https://sepolia.infura.io/v3/XXXXXXXX cargo run -p server
 
-You can run server WITHOUT personal Infura key. But it works WORST.
+You can run server WITHOUT personal Infura key. But probably it WON'T work properly!.
 > cargo run -p server
 
 ### Run client (in debug mode)
 
 > cargo run -p client -- create-wallet user-1
 
+I STRONGLY RECOMMEND you to have your own, personal Infura development key. There is a HIGH CHANCE the CLI examples won't work properly !
+
+> INFURA_RPC_URL=https://sepolia.infura.io/v3/4826ee26xxxxxxx cargo run -p client -- ....
+
 CLI app runs one command (with parameters) one time and then exits.
 
 ## Client commands list
 
 ### Create wallet
+Create two wallet files with names like 'user1.private' and 'user1.public' in current directory.
+> cargo run -p client -- create-wallet user1
 
+The 'name' is a wallet name. It can be any string valid for local file name creation.
 > cargo run -p client -- create-wallet name
-
-Creates wallet (two files with private and public keys) using specified name and stores it into current directory as local files.
 
 ### Get wallet balance
 
 The 'wallet-name' is a wallet address in hex format. Server MUST be running to get balance.
 
-> cargo run -p client -- get-balance 0x3ab1d9D1aA3d97181FdA1a1Ff747009474655263
+> cargo run -p client -- get-balance 0x3ab1d9D1aA3d97181FdA1a1Ff747009xxxxxxxx
 
 OR
 The 'wallet-name' can be a private key of wallet stored as local file in current directory. Just for testing purposes.
 
+> cargo run -p client -- get-balance user1
+
+General usage is following:
 > cargo run -p client -- get-balance wallet-name
 
 Reads wallet file (wallet-name.private), gets balance from server and prints result.
@@ -63,7 +71,7 @@ OR
 > cargo run -p client -- transfer from-name to-name amount
 
 ### Deploy compiled smart contract
-I've put already compiled smart contract files in /client directory.
+I've put already prepared and compiled smart contract files in /client directory.
 
 The smart contract example can be called for 'storing' new value ONLY by OWNER. It can be called for 'reading' value by ANYONE. Deployment is done by OWNER one time and later can be called using it hash.
 
@@ -87,16 +95,16 @@ There is a copy of compiled contract in /common/src/MessageStorage.abi
 
 Contract's method for reading value can be called by ANY user (the existing wallet). The included contract doesn't have restriction to read value.
 
-> cargo run -p client -- read contract-address
+> cargo run -p client -- read-message contract-address
 
 An example is following:
-> cargo run -p client -- read 0x794dade1fDe57801ADD4D10D19521xxxxxxxxxxx
+> cargo run -p client -- read-message 0x794dade1fDe57801ADD4D10D19521xxxxxxxxxxx
 
 ### Store value in Deployed smart contract
 
 It can be called for 'storing' new value by OWNER ONLY (the wallet that deployed smart contract).
 
-> cargo run -p client -- store wallet-name new-store-value
+> cargo run -p client -- store-message owner-wallet-name contract-address "new stored value"
 
 
 # Flow to run included smart contract example
@@ -107,3 +115,9 @@ Below I explain how to run included smart contract example. What steps are neede
 ### Create first, main wallet
 
 > cargo run -p client -- create-wallet main-wallet
+
+
+> INFURA_RPC_URL=https://sepolia.infura.io/v3/4826ee26xxxxxxx cargo run -p client -- store-message user1 0x794dade1fDe57801ADD4D10D1952140be57bBF9E "new contract message 1"
+
+
+> INFURA_RPC_URL=https://sepolia.infura.io/v3/4826ee26xxxx cargo run -p client -- read-message 0x794dade1fDe57801ADD4D10D1952140be57bBF9E

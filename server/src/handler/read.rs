@@ -7,7 +7,7 @@ use axum::routing::{MethodRouter, get};
 use axum_macros::debug_handler;
 use common::contract::MessageStorageContract;
 use common::error::ApiError;
-use common::retrieve::RetrieveMessageResponse;
+use common::read::RetrieveMessageResponse;
 
 #[debug_handler]
 pub async fn retrieve_message(

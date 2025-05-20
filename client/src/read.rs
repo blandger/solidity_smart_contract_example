@@ -1,4 +1,4 @@
-use common::retrieve::RetrieveMessageResponse;
+use common::read::RetrieveMessageResponse;
 use crate::config::BASE_LOCAL_SERVER_URL;
 use crate::errors::ClientError;
 use crate::errors::ClientError::Server;

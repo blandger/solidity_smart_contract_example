@@ -9,7 +9,7 @@ use axum::Router;
 use axum::routing::{get, post};
 use handler::deploy::deploy_contract;
 use handler::hello::static_hello;
-use handler::retrieve::retrieve_message_route;
+use handler::read::retrieve_message_route;
 use handler::store::store_message;
 use std::error::Error;
 use std::net::SocketAddr;

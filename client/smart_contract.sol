@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 contract MessageStorage {
     // Variable for storing message
-    string private message;
+    string private message = "Initial contract message";
 
     // Contract owner address
     address public owner;

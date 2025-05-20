@@ -3,6 +3,7 @@ use alloy::hex::FromHexError;
 use alloy::transports::TransportError;
 use k256::ecdsa;
 use thiserror::Error;
+use common::error::ApiError;
 
 #[derive(Error, Debug)]
 pub enum ClientError {
@@ -24,4 +25,6 @@ pub enum ClientError {
     NotFoundContractFile(String, PathBuf),
     #[error("Contract binary file '{0}.bin' reading error by path '{1}'")]
     ReadContractFile(String, PathBuf),
+    #[error(transparent)]
+    CommonApi(#[from] ApiError),
 }

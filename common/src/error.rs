@@ -6,6 +6,7 @@ use axum::{
 use thiserror::Error;
 use url::ParseError;
 use alloy::hex;
+use alloy::network::{Ethereum, TransactionBuilderError};
 use alloy::primitives::{AddressError, TxHash, U256};
 use alloy::transports::{RpcError, TransportErrorKind};
 
@@ -28,9 +29,6 @@ pub enum ApiError {
 
     #[error("Internal server error: {0}")]
     InternalServerError(String),
-
-    // #[error("Ethereum error: {0}")]
-    // EthereumError(#[from] ethers::core::types::Error),
 
     #[error(transparent)]
     IncorrectUrl(#[from] ParseError),
@@ -55,6 +53,8 @@ pub enum ApiError {
     CallReadAbi(#[from] alloy::contract::Error),
     #[error("Reading contract method empty value: {0}")]
     EmptyReadMethod(String),
+    #[error("Transaction builder error: {0}")]
+    TransactionBuilderError(#[from] TransactionBuilderError<Ethereum>),
 }
 
 impl IntoResponse for ApiError {
@@ -78,6 +78,7 @@ impl IntoResponse for ApiError {
             ApiError::ReadAbi(_) => (StatusCode::SERVICE_UNAVAILABLE, self.to_string()),
             ApiError::CallReadAbi(_) => (StatusCode::BAD_REQUEST, self.to_string()),
             ApiError::EmptyReadMethod(_) => (StatusCode::BAD_REQUEST, self.to_string()),
+            ApiError::TransactionBuilderError(_) => (StatusCode::BAD_REQUEST, self.to_string()),
         };
 
         let body = Json(serde_json::json!({

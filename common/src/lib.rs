@@ -4,7 +4,7 @@ pub mod contract;
 pub mod deploy;
 pub mod error;
 pub mod provider;
-pub mod retrieve;
+pub mod read;
 pub mod store;
 pub mod transaction_params;
 pub mod transfer;

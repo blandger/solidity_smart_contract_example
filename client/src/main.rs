@@ -99,10 +99,16 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
                         .index(1),
                 )
                 .arg(
-                    Arg::new("new_string")
-                        .help("New value to store into existing contract")
+                    Arg::new("contract-address")
+                        .help("Address of existing contract")
                         .required(true)
                         .index(2),
+                )
+                .arg(
+                    Arg::new("new-value")
+                        .help("New value to store into existing contract")
+                        .required(true)
+                        .index(3),
                 ),
         )
         .subcommand(
@@ -134,7 +140,7 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
             let account_from = sub_matches.get_one::<String>("from").unwrap();
             // that is an Ethereum address !!
             let account_to = sub_matches.get_one::<String>("to").unwrap();
-            // that is a number as string
+            // that is an amount number as string
             let amount = sub_matches.get_one::<String>("amount").unwrap();
             transfer_amount(account_from, account_to, amount).await?;
         }
@@ -144,9 +150,13 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
             deploy_contract(contract, signer).await?;
         }
         Some(("store-message", sub_matches)) => {
+            // name of the file with private key for contract owner
             let signer = sub_matches.get_one::<String>("signer").unwrap();
-            let new_string = sub_matches.get_one::<String>("new_string").unwrap();
-            store_message(signer, new_string).await?;
+            // deployed contract address
+            let contract_address = sub_matches.get_one::<String>("contract-address").unwrap();
+            // new value inside "", like = "Hello world"
+            let new_message = sub_matches.get_one::<String>("new-value").unwrap();
+            store_message(signer, contract_address, new_message).await?;
         }
         Some(("read-message", sub_matches)) => {
             let contact_hash = sub_matches.get_one::<String>("contact-hash").unwrap();

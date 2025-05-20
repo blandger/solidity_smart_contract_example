@@ -55,9 +55,8 @@ pub async fn deploy_contract(contract: &str, signer: &str) -> Result<(), Box<dyn
         address_from: account_signer_from.address().to_string(),
         signed_transaction: signed_tx_hex,
     };
-
-
     println!("Sending tx by owner: '{}'", &account_signer_from.address());
+
     // 3. Send the transaction to local server
     let response = client.post(format!("{}/deploy-contract", &BASE_LOCAL_SERVER_URL))
         .json(&signed_transaction)
@@ -69,16 +68,15 @@ pub async fn deploy_contract(contract: &str, signer: &str) -> Result<(), Box<dyn
         let deploy_response = response.json::<DeployContractResponse>().await?;
 
         if let Some(tx_hash) = &deploy_response.transaction_hash {
-            println!("Deploy Transaction sent successfully!");
-            println!("Deploy Transaction hash: {}", tx_hash);
+            println!("Store Massage Transaction sent successfully!");
+            println!("Transaction hash: {}", tx_hash);
         }
-
         println!("Status: {:?}", &deploy_response.status);
         println!("Block number: {:?}", &deploy_response.block_number);
         println!("Contract deployment SUCCESS! Contract address: {:?}", deploy_response.contract_address)
     } else {
         let error_text = response.text().await?;
-        println!("Failed to send contract deployment transaction: {}", error_text);
+        println!("Failed to send 'new message tx' to contract: {}", error_text);
         return Err(error_text.into())
     }
 

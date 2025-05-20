@@ -1,37 +1,55 @@
-use std::sync::Arc;
 use crate::error::ApiError;
+use crate::provider::DefaultEthProvider;
 use alloy::contract::{ContractInstance, Interface};
 use alloy::core::sol;
-use alloy::network::Ethereum;
+use alloy::eips::Encodable2718;
+use alloy::hex;
+use alloy::network::{Ethereum, EthereumWallet, TransactionBuilder};
 use alloy::primitives::Address;
-use alloy::signers::Signer;
-use crate::provider::DefaultEthProvider;
+use alloy::providers::Provider;
+use alloy::rpc::types::TransactionRequest;
+use alloy::signers::local::PrivateKeySigner;
+use alloy::sol_types::SolCall;
+use std::sync::Arc;
 
 // Generate contract interface from ABI
 sol!(MessageStorage, "src/MessageStorage.abi");
 
+/// Contract ABI from include_str
 pub const ABI: &str = include_str!("MessageStorage.abi");
 
+/// Contract wrapper for easier calling our contract methods
 pub struct MessageStorageContract {
+    /// Deployed contract address
     address: Address,
+    /// Contract instance
     contract_instance: ContractInstance<Arc<DefaultEthProvider>, Ethereum>,
 }
 
 impl MessageStorageContract {
-    pub fn new(contract_address: Address, provider: Arc<DefaultEthProvider>,) -> Result<Self, ApiError> {
-        // Get the contract ABI.
+    /// Create a new contract instance for later use by client and server
+    pub fn new(
+        contract_address: Address,
+        provider: Arc<DefaultEthProvider>,
+    ) -> Result<Self, ApiError> {
+        // Get the contract ABI from include_str.
         let abi = serde_json::from_str(&ABI)?;
 
-        // Create a new `ContractInstance` of the `Counter` contract from the abi
-        let contract = ContractInstance::new(contract_address, provider.clone(), Interface::new(abi));
+        // Create a new `ContractInstance` from the abi
+        let contract =
+            ContractInstance::new(contract_address, provider.clone(), Interface::new(abi));
         Ok(Self {
             address: contract_address,
             contract_instance: contract,
         })
     }
 
+    /// That method is used by Axum server handler
     pub async fn retrieve_message(&self) -> Result<String, ApiError> {
-        println!("Retrieve message by contract address: '{}'...", self.address);
+        println!(
+            "Retrieve message by contract address: '{}'...",
+            self.address
+        );
         let tx_builder = self.contract_instance.function("retrieveMessage", &[])?;
         let tx = tx_builder.call().await?;
         println!("contract tx = {:?}", &tx);
@@ -44,31 +62,50 @@ impl MessageStorageContract {
         Ok(message.to_string())
     }
 
+    /// Method is used by CLI client because of signing transaction by private key
     pub async fn store_message_hex(
         &self,
-        wallet: &impl Signer,
-        message: String,
-    ) -> Result<String, Box<dyn std::error::Error>> {
-        /*let call = MessageStorage::storeMessageCall { _message: message };
-        let calldata = call.encode();
+        sender_wallet: PrivateKeySigner,
+        new_message: &str,
+    ) -> Result<String, ApiError> {
+        println!("store_message_hex( {} ) ", &new_message);
+        let call = MessageStorage::storeMessageCall {
+            _message: new_message.to_string(),
+        };
+        let call_data = call.abi_encode();
+        println!("encoded call data: {:?}", &call_data);
 
-        let sender = wallet.address();
-        let nonce = self.provider.get_transaction_count(&sender, None).await?;
-        let gas_price = self.provider.get_gas_price().await?;
+        // Contract user owner address
+        let sender = sender_wallet.address();
+        println!("Getting nonce for sender: {:?}", sender);
+        let nonce = self.contract_instance
+            .provider()
+            .get_transaction_count(sender)
+            .await?;
+        let gas_price = self.contract_instance.provider().get_gas_price().await?;
 
-        let mut tx = alloy_primitives::TxRequest::new()
-            .to(self.address)
-            .data(calldata)
-            .nonce(nonce)
-            .gas_price(gas_price);
+        let mut tx_request = TransactionRequest::default()
+            .with_from(sender)
+            .with_to(self.address)
+            .input(call_data.into())
+            .with_nonce(nonce)
+            .with_gas_price(gas_price);
 
-        let gas_limit = self.provider.estimate_gas(&sender, &tx, None).await?;
-        tx = tx.gas(gas_limit);
+        let gas_limit = self
+            .contract_instance
+            .provider()
+            .estimate_gas(tx_request.clone())
+            .await?;
+        tx_request = tx_request.with_gas_limit(gas_limit);
+        println!("Received data: nonce={:?}, gas_price={:?}, gas_limit={:?}", &nonce, &gas_price, &gas_limit);
 
-        let signed_tx = wallet.sign_transaction(tx).await?;
+        let wallet = EthereumWallet::from(sender_wallet);
+        let tx_envelope = tx_request.build(&wallet).await?;
 
-        // Возвращаем hex строки для передачи на сервер
-        Ok(format!("0x{}", hex::encode(signed_tx)))*/
-        todo!()
+        let serialized_tx = tx_envelope.encoded_2718();
+        let signed_tx_hex = hex::encode(serialized_tx.as_slice());
+        println!("Prepared tx={:?}", &signed_tx_hex);
+        // Return hex strings for sending to server
+        Ok(signed_tx_hex)
     }
 }
