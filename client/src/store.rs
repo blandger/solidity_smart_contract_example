@@ -27,10 +27,11 @@ pub async fn store_message(
     // create transaction to set new message value in contract (by address)
     let signed_tx_hex = create_contract_store_message_transaction_locally(
         contract_address,
-        account_signer_from,
+        account_signer_from.clone(),
         new_message_value,
     )
     .await?;
+    println!("Tx sender for store message: {:?}", &account_signer_from.address());
 
     // Here will be your code for signing the transaction and sending to REST API
     // 1. Create an HTTP client
@@ -88,13 +89,17 @@ async fn create_contract_store_message_transaction_locally(
 ) -> Result<String, ClientError> {
     let address = Address::from_str(contract_address)?;
 
+    // We create new local Provider here
     let rpc_url = init_test_net_url();
     // Connect to Sepolia locally on CLI
     let provider = ProviderBuilder::new().connect(rpc_url).await?;
 
+    // We should use local Provider because it's impossible create ABI contract without it for creation TX for a calling 'store message' operation
     let contract = MessageStorageContract::new(address, Arc::new(provider))?;
-    let result = contract
+    // Create TX for 'store message' operation
+    let tx_call_contract = contract
         .store_message_hex(sign_contract_owner, new_contract_message_value)
         .await?;
-    Ok(result)
+    println!("Created tx to call a contract");
+    Ok(tx_call_contract)
 }

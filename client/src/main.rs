@@ -186,6 +186,7 @@ fn init_parent_dir() {
 
     #[cfg(not(debug_assertions))]
     {
+        use std::path::Path;
         // For release builds
         // Get the executable's directory and use its parent
         PARENT_DIR.get_or_init(|| {
@@ -204,6 +205,6 @@ fn init_parent_dir() {
 
 /// Get path relative to parent directory
 fn get_path(relative_path: &str) -> PathBuf {
-    let parent = PARENT_DIR.get().expect("Parent directory not initialized");
+    let parent = PARENT_DIR.get().expect("Parent directory is not initialized");
     parent.join(relative_path)
 }

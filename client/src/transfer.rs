@@ -15,7 +15,7 @@ use crate::balance::convert_wei_to_eth;
 use crate::config::{APPROXIMATE_TRANSFER_GAS_PRICE, BASE_LOCAL_SERVER_URL};
 use crate::load_wallet::{load_wallet_from_file, recipient_address_from_string_or_local_file};
 
-/// Transfer some tokens from one account to another using server side.
+/// Prepare signed transaction to transfer some tokens from one account to another using server side. Transaction is signed locally and sent to server.
 pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str) -> Result<(), Box<dyn Error>> {
     println!("Transfer from '{}' to '{}' the amount '{}'", account_from, account_to, amount);
 

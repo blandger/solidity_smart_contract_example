@@ -85,7 +85,9 @@ impl MessageStorageContract {
         let gas_price = self.contract_instance.provider().get_gas_price().await?;
 
         let mut tx_request = TransactionRequest::default()
-            .with_from(sender)
+            // IMPORTANT to set it up otherwise you'll get error 'only owner can call contract operation'
+            .with_from(sender) 
+            // contract address
             .with_to(self.address)
             .input(call_data.into())
             .with_nonce(nonce)
@@ -104,7 +106,7 @@ impl MessageStorageContract {
 
         let serialized_tx = tx_envelope.encoded_2718();
         let signed_tx_hex = hex::encode(serialized_tx.as_slice());
-        println!("Prepared tx={:?}", &signed_tx_hex);
+        println!("Prepared call contract tx: {:?}", &signed_tx_hex);
         // Return hex strings for sending to server
         Ok(signed_tx_hex)
     }
