@@ -76,8 +76,7 @@ Contract owner can store new message value into it.
 INFURA_RPC_URL=https://sepolia.infura.io/v3/4826ee2650324xxxxxxxx ./client store-message user1 0xFCe007c135e90867a8c9143989BAbxxxxxxx "new contract message 1"
 ```
 
-On success, you'll see message like: _New Value 'new contract message 1' successfully stored in contract by address: 0xFCe007c135e90867a8c9143989BAbxxxxxxx
-_
+On success, you'll see message like: _New Value 'new contract message 1' successfully stored in contract by address: 0xFCe007c135e90867a8c9143989BAbxxxxxxx_
 
 ### 8. Check new message is stored in smart contract
 See updated message from smart contract.
