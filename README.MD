@@ -6,6 +6,16 @@ It consists of **client CLI** app and local **Axum Server**.
 
 CLI is used for creating wallets, transferring ETH tokens from one to another wallet, deploying smart contract and calling it via console client and server. CLI creates and signs transactions locally using private key files first. Then it sends signed transaction to local server and then to blockchain. Wallet balance is checked in test network (Sepolia) before proceeding with transaction. **The private key files do not leave CLI app**. 
 
+## Functionality
+Console CLI app + axum REST API server
+* Creating wallet (keys)
+* Getting ETH wallet balance
+* Transferring ETH tokens from one to another wallet
+* Deploying simple, precompiled smart contract
+* Reading data from smart contract
+* Storing new data into deployed smart contract
+* Private key do not leave CLI app
+
 ## Module list
 * /server - binary Axum server (running on 8080 port) should be started first for client CLI interaction
 * /client - binary CLI app works with local server (and with Ethereum test network)
