@@ -5,6 +5,7 @@ use axum::Json;
 use axum::extract::{Path, State};
 use axum::routing::{MethodRouter, get};
 use axum_macros::debug_handler;
+use tracing::info;
 use common::contract::MessageStorageContract;
 use common::error::ApiError;
 use common::read::RetrieveMessageResponse;
@@ -14,14 +15,14 @@ pub async fn retrieve_message(
     State(state): State<AppState>,
     Path(contract_address): Path<String>,
 ) -> Result<Json<RetrieveMessageResponse>, ApiError> {
-    println!("Retrieving message from contract deployed by address: {}", &contract_address);
+    info!("Retrieving message from contract deployed by address: {}", &contract_address);
     let contract_address = contract_address.parse::<Address>()?;
 
     let provider = state.provider;
 
     let contract = MessageStorageContract::new(contract_address, Arc::clone(&provider))?;
     let message_value = contract.retrieve_message().await?;
-    println!("Got message: {}", &message_value);
+    info!("Got contract message: {}", &message_value);
     
     Ok(Json(RetrieveMessageResponse {
         message: message_value,

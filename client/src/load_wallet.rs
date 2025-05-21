@@ -6,7 +6,7 @@ use alloy::signers::local::PrivateKeySigner;
 use alloy::hex;
 use alloy_primitives::Address;
 use crate::errors::ClientError;
-use crate::get_path;
+use crate::init::get_path;
 
 /// Load private key from file with name using current folder
 pub fn load_wallet_from_file(name: &str) -> Result<PrivateKeySigner, ClientError> {

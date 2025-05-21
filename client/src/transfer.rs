@@ -7,6 +7,7 @@ use alloy::network::{EthereumWallet, TransactionBuilder};
 use alloy::rpc::types::TransactionRequest;
 use alloy_primitives::{Address, ChainId, U256};
 use reqwest::Client;
+use tracing::{debug, error, info};
 use common::balance::BalanceResponse;
 use common::error::ApiError;
 use common::transaction_params::TransactionParamsResponse;
@@ -17,15 +18,15 @@ use crate::load_wallet::{load_wallet_from_file, recipient_address_from_string_or
 
 /// Prepare signed transaction to transfer some tokens from one account to another using server side. Transaction is signed locally and sent to server.
 pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str) -> Result<(), Box<dyn Error>> {
-    println!("Transfer from '{}' to '{}' the amount '{}'", account_from, account_to, amount);
+    info!("Transfer from '{}' to '{}' the amount '{}'", account_from, account_to, amount);
 
     // 'account from' Read private key from file
     let account_signer_from = load_wallet_from_file(account_from)?;
     let address_to = recipient_address_from_string_or_local_file(account_to)?;
     let address_from = account_signer_from.address();
-    println!("Wallet Sender address (from): {}", &address_from);
-    println!("Wallet Recipient address (to): {}", &address_to);
-    println!("Amount to send: {}", &amount);
+    debug!("Wallet Sender address (from): {}", &address_from);
+    debug!("Wallet Recipient address (to): {}", &address_to);
+    debug!("Amount to send: {}", &amount);
 
     let value = amount.parse::<f64>()?;
     if value.is_nan() || value.is_sign_negative() {
@@ -33,7 +34,7 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
     }
     
     let amount_wei = U256::from((value * 1e18) as u128);
-    println!("Amount to transfer: {} ETH ({} Wei)", value, amount_wei);
+    debug!("Amount to transfer: {} ETH ({} Wei)", value, amount_wei);
 
     // Here will be your code for signing the transaction and sending to REST API
     // 1. Create an HTTP client
@@ -77,16 +78,16 @@ pub async fn transfer_amount(account_from: &str, account_to: &str, amount: &str)
         let transfer_response = response.json::<TransferTransactionResponse>().await?;
 
         if let Some(tx_hash) = &transfer_response.transaction_hash {
-            println!("Transaction sent successfully!");
-            println!("Transaction hash: {}", tx_hash);
+            info!("Transaction sent successfully!");
+            debug!("Transaction hash: {}", tx_hash);
         }
 
-        println!("Status: {:?}", &transfer_response.status);
-        println!("Block number: {:?}", &transfer_response.block_number);
-        println!("Transfer SUCCESS! {:?}", transfer_response.status)
+        debug!("Status: {:?}", &transfer_response.status);
+        debug!("Block number: {:?}", &transfer_response.block_number);
+        info!("Transfer SUCCESS! {:?}", transfer_response.status)
     } else {
         let error_text = response.text().await?;
-        println!("Failed to send transaction: {}", error_text);
+        error!("Failed to send transaction: {}", error_text);
         return Err(error_text.into())
     }
     Ok(())
@@ -100,7 +101,7 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
 
     if !balance_response.status().is_success() {
         let error_text = balance_response.text().await?;
-        println!("Failed to get account balance for address '{}' because: {}", &address_from, error_text);
+        error!("Failed to get account balance for address '{}' because: {}", &address_from, error_text);
         return Err(error_text.into());
     }
 
@@ -109,7 +110,7 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
         .await?;
 
     let balance_from = balance_value.balance;
-    println!("Got balance: '{}' in Wei ({} ETH)", balance_from, convert_wei_to_eth(balance_from));
+    debug!("Got balance: '{}' in Wei ({} ETH)", balance_from, convert_wei_to_eth(balance_from));
 
     let params_response = client
         .get(format!("{}/tx/{}", &BASE_LOCAL_SERVER_URL, &address_from))
@@ -118,7 +119,7 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
 
     if !params_response.status().is_success() {
         let error_text = params_response.text().await?;
-        println!("Failed to get balance for address '{}' because: {}", &address_from, error_text);
+        error!("Failed to get balance for address '{}' because: {}", &address_from, error_text);
         return Err(error_text.into())
     }
 
@@ -127,16 +128,16 @@ pub(crate) async fn check_account_balance(address_from: &Address, amount_to_spen
 
     let _nonce = U256::try_from(params_response.nonce)?;
 
-    println!("gas_limit = {gas_limit}");
+    debug!("gas_limit = {gas_limit}");
     let gas_price = U256::from(params_response.gas_price);
-    println!("gas_price = {}", &gas_price);
+    debug!("gas_price = {}", &gas_price);
     let gas_fee = gas_price.checked_mul(gas_limit).unwrap();
-    println!("gas_fee ({gas_fee}) = gas_price ({gas_price}) * gas_limit ({gas_limit}) = {}", gas_price * gas_limit);
+    debug!("gas_fee ({gas_fee}) = gas_price ({gas_price}) * gas_limit ({gas_limit}) = {}", gas_price * gas_limit);
 
     let total_required = amount_to_spend_in_wei
         .checked_add(gas_fee)
         .ok_or("overflow in 'total_required' calculation")?;
-    println!("total_required = {total_required} VS gas_fee = {gas_fee} VS balance_from = {balance_from}");
+    debug!("total_required = {total_required} VS gas_fee = {gas_fee} VS balance_from = {balance_from}");
 
     // check if balance is enough for transfer
     if balance_from < total_required {

@@ -3,6 +3,7 @@ pub mod config;
 pub mod contract;
 pub mod deploy;
 pub mod error;
+pub mod init_log;
 pub mod provider;
 pub mod read;
 pub mod store;

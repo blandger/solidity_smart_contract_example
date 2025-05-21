@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use common::provider::DefaultEthProvider;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct AppState {

@@ -3,6 +3,7 @@ mod config;
 mod create;
 pub mod deploy;
 pub mod errors;
+pub mod init;
 pub mod load_wallet;
 pub mod read;
 pub mod store;
@@ -16,17 +17,20 @@ use crate::store::store_message;
 use crate::transfer::transfer_amount;
 use clap::{Arg, Command};
 use std::error::Error;
-use std::path::PathBuf;
-use std::sync::OnceLock;
+use tracing::error;
+use common::init_log::init_tracing;
+use crate::init::init_parent_dir;
+
+const MODULE_LOG_FILTERS: &str = concat!(
+"client=INFO,"
+);
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
+    init_tracing(MODULE_LOG_FILTERS);
 
     if let Err(e) = run_app().await {
-        eprintln!("Error: {}", e); // Use {:?}
+        error!("Error: {}", e); // Use {:?}
         std::process::exit(1);
     }
 }
@@ -167,44 +171,4 @@ async fn run_app() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-}
-
-// Global static for parent directory path
-static PARENT_DIR: OnceLock<PathBuf> = OnceLock::new();
-
-/// Initialize the parent directory based on compile mode
-fn init_parent_dir() {
-    #[cfg(debug_assertions)]
-    {
-        // For debug builds (cargo run)
-        PARENT_DIR.get_or_init(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "")));
-        println!(
-            "Running in debug mode, parent directory set to: {:?}",
-            PARENT_DIR.get().unwrap()
-        );
-    }
-
-    #[cfg(not(debug_assertions))]
-    {
-        use std::path::Path;
-        // For release builds
-        // Get the executable's directory and use its parent
-        PARENT_DIR.get_or_init(|| {
-            let exe_path = std::env::current_exe().expect("Failed to get executable path");
-            exe_path
-                .parent()
-                .unwrap_or_else(|| Path::new("."))
-                .to_path_buf()
-        });
-        println!(
-            "Running in release mode, parent directory set to: {:?}",
-            PARENT_DIR.get().unwrap()
-        );
-    }
-}
-
-/// Get path relative to parent directory
-fn get_path(relative_path: &str) -> PathBuf {
-    let parent = PARENT_DIR.get().expect("Parent directory is not initialized");
-    parent.join(relative_path)
 }

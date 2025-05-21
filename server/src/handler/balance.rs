@@ -3,6 +3,7 @@ use alloy_primitives::{Address, U256};
 use axum::extract::{Path, State};
 use axum::Json;
 use axum::routing::{get, MethodRouter};
+use tracing::info;
 use common::balance::BalanceResponse;
 use common::error::ApiError;
 use crate::state::AppState;
@@ -11,11 +12,11 @@ pub async fn get_balance(
     State(state): State<AppState>,
     Path(address): Path<String>,
 ) -> Result<Json<BalanceResponse>, ApiError> {
-    println!("get_balance_route... address: {}", &address);
+    info!("get_balance_route... address: {}", &address);
     let address = Address::parse_checksummed(&address, None)?;
     let balance = state.provider.get_balance(address).await?;
     let eth = convert_wei_to_eth(balance);
-    println!("Got balance for address: '{}' = '{}' wei ({} eth)", &address, &balance, &eth);
+    info!("Got balance for address: '{}' = '{}' wei ({} eth)", &address, &balance, &eth);
     Ok(Json(BalanceResponse {
         balance,
     }))

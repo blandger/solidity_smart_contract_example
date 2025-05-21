@@ -7,19 +7,21 @@ use crate::handler::transfer::transfer;
 use crate::state::AppState;
 use axum::Router;
 use axum::routing::{get, post};
+use common::init_log::init_tracing;
+use common::provider::create_shared_provider;
 use handler::deploy::deploy_contract;
 use handler::hello::static_hello;
 use handler::read::retrieve_message_route;
 use handler::store::store_message;
 use std::error::Error;
 use std::net::SocketAddr;
-use common::provider::create_shared_provider;
+use tracing::info;
+
+const MODULE_LOG_FILTERS: &str = concat!("server=INFO,");
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
+    init_tracing(MODULE_LOG_FILTERS);
 
     let state = AppState::new(create_shared_provider()?);
 
@@ -42,7 +44,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let app = with_prefix("/api", api_routes);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    println!("Listening on: {}", addr);
+    info!("Server is listening on: {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
     Ok(())

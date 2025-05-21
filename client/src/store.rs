@@ -10,6 +10,7 @@ use common::store::{StoreInContractTransactionResponse, StoreMessagePayload};
 use std::error::Error;
 use std::str::FromStr;
 use std::sync::Arc;
+use tracing::{debug, info};
 
 /// Store new value in the previously deployed contract
 pub async fn store_message(
@@ -17,7 +18,7 @@ pub async fn store_message(
     contract_address: &str,
     new_message_value: &str,
 ) -> Result<(), Box<dyn Error>> {
-    println!(
+    info!(
         "Storing new value '{}' in contract address '{}' using signer key: {}",
         new_message_value, contract_address, signer
     );
@@ -31,14 +32,13 @@ pub async fn store_message(
         new_message_value,
     )
     .await?;
-    println!("Tx sender for store message: {:?}", &account_signer_from.address());
+    debug!("Tx sender for store message: {:?}", &account_signer_from.address());
 
     // Here will be your code for signing the transaction and sending to REST API
     // 1. Create an HTTP client
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(6000)) // 10 minutes
-        .build()
-        .expect("Failed to build reqwest client");
+        .build()?;
 
     // 2. Send signed transaction with new value
     let signed_transaction = StoreMessagePayload {
